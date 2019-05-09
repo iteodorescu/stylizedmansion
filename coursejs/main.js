@@ -155,7 +155,7 @@ function MeshInstance(filename, useMaterial) {
 
 // when HTML is finished loading, do this
 window.onload = function() {
-  Student.updateHTML();
+//   Student.updateHTML();
 
   Main.canvas = document.getElementById("canvas");
   Main.context = canvas.getContext("2d");
