@@ -84,21 +84,28 @@ Pixel.prototype.fromHSL = function(hOrHsl, s, l) {
     if (h * 3 < 2) return m1 + (m2 - m1) * (0.66666 - h) * 6;
     return m1;
   };
-  this.r = Math.round(hueToRGB(m1, m2, h + 1 / 3));
-  this.g = Math.round(hueToRGB(m1, m2, h));
-  this.b = Math.round(hueToRGB(m1, m2, h - 1 / 3));
+  this.r = hueToRGB(m1, m2, h + 1 / 3);
+  this.g = hueToRGB(m1, m2, h);
+  this.b = hueToRGB(m1, m2, h - 1 / 3);
+  /*
+  let r = Math.round(hueToRGB(m1, m2, h + 1 / 3));
+  let g = Math.round(hueToRGB(m1, m2, h));
+  let b = Math.round(hueToRGB(m1, m2, h - 1 / 3));
+  let pix = new Pixel(r,g,b,1);
+  return pix;
+  */
 };
 
 // convert to HSL (returns values in an object)
 Pixel.prototype.toHSL = function() {
-  var r = this.r / 255,
-    g = this.g / 255,
-    b = this.b / 255;
+  var r = this.r,
+    g = this.g,
+    b = this.b;
   var max = Math.max(r, g, b),
     min = Math.min(r, g, b);
   var h,
     s,
-    l = (max + min) / 2;
+    l = (max + min) / 2; // correct
 
   if (max == min) {
     h = s = 0; // achromatic
@@ -118,11 +125,35 @@ Pixel.prototype.toHSL = function() {
     }
     h /= 6;
   }
+  //return new Pixel(h, s, l, 1);
   return {
     h: h,
     s: s,
     l: l,
   };
+};
+
+
+Pixel.prototype.toRGB = function() {
+  //assert(this.colorSpace === "hsl", "input pixel color space must be hsl");
+
+  var h = this.r;
+  var s = this.g;
+  var l = this.b;
+
+  var m1, m2;
+  m2 = (l <= 0.5) ? l * (s + 1) : l + s - l * s;
+  m1 = l * 2 - m2;
+  var hueToRGB = function( m1, m2, h ) {
+    h = ( h < 0 ) ? h + 1 : ((h > 1) ? h - 1 : h);
+    if ( h * 6 < 1 ) return m1 + (m2 - m1) * h * 6;
+    if ( h * 2 < 1 ) return m2;
+    if ( h * 3 < 2 ) return m1 + (m2 - m1) * (0.66666 - h) * 6;
+    return m1;
+  };
+  this.r = hueToRGB( m1, m2, h + 1 / 3 );
+  this.g = hueToRGB( m1, m2, h         );
+  this.b = hueToRGB( m1, m2, h - 1 / 3 );
 };
 
 Pixel.prototype.copy = function() {

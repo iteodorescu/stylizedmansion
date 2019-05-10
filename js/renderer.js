@@ -18,14 +18,17 @@ Reflection.phongReflectionModel = function(vertex, view, normal, lightPos, phong
   // Ambient color and specular color
   // ----------- STUDENT CODE BEGIN ------------
   // ----------- Our reference solution uses 12 lines of code.
-  const v = new THREE.Vector3().subVectors(vertex, view).normalize();
-  const r = light_dir.reflect(normal)
+  // const v = new THREE.Vector3().subVectors(vertex, view).normalize();
+  // const r = light_dir.reflect(normal)
 
-  const vdotrton = Math.pow(v.dot(r), phongMaterial.shininess);
+  // const vdotrton = Math.pow(v.dot(r), phongMaterial.shininess);
 
-  color = color.plus(phongMaterial.specular.copy().multipliedBy(vdotrton))
+  // color = color.plus(phongMaterial.specular.copy().multipliedBy(vdotrton))
+  // //color.clamp();
 
-  color = color.plus(phongMaterial.ambient)
+  // color = color.plus(phongMaterial.ambient)
+
+  // color.clamp();
   // ----------- STUDENT CODE END ------------
 
   return color;
@@ -457,7 +460,28 @@ Renderer.drawTrianglePhong = function(verts, projectedVerts, normals, uvs, mater
                     }
                 }
                 
-                const color = Reflection.phongReflectionModel(vert, this.cameraPosition, normal, this.lightPos, phongMaterial);
+                var color = Reflection.phongReflectionModel(vert, this.cameraPosition, normal, this.lightPos, phongMaterial);
+                // console.log(color);
+                let hsl = color.toHSL();
+                // if (hsl.h > 1.0 || hsl.s > 1.0 || hsl.l > 1.0) {
+                //   // debugger
+                // }
+                // if (hsl.h < 0 || hsl.s < 0 || hsl.l < 0) {
+                //   // debugger
+                // }
+                if(hsl.l > 0.8){
+                  hsl.l = 0.9;
+                }
+                else if(hsl.l > 0.5){
+                  hsl.l = 0.5;
+                }
+                else{
+                  hsl.l = 0.2;
+                }
+                color.fromHSL(hsl.h, hsl.s, hsl.l);
+                // console.log(color);
+                // debugger
+
                 this.buffer.setPixel(x, y, color);
               }
           }
