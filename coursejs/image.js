@@ -38,6 +38,20 @@ Pixel.prototype.clamp = function() {
   this.a = this.a < 0 ? 0 : this.a > 1 ? 1 : this.a;
 };
 
+// Constrain val to the range [min, max]
+function clamp(val, min, max) {
+  /* Shorthand for:
+  * if (val < min) {
+  *   return min;
+  * } else if (val > max) {
+  *   return max;
+  * } else {
+  *   return val;
+  * }
+  */
+  return ((val < min) ? min : ((val > max) ? max : val));
+}
+
 // copy value from web color code like '#a2881f' into pixel
 Pixel.prototype.fromHex = function(hex) {
   var bigint = parseInt(hex.substring(1), 16);
@@ -216,6 +230,14 @@ Pixel.prototype.copySub = function(p) {
   return q;
 };
 
+// make sure pixel values are between 0 and 255
+Pixel.prototype.clamp = function() {
+  this.r = Math.min( 1, Math.max( this.r,  0 ) );
+  this.g = Math.min( 1, Math.max( this.g,  0 ) );
+  this.b = Math.min( 1, Math.max( this.b,  0 ) );
+  this.a = Math.min( 1, Math.max( this.a,  0 ) );
+};
+
 // scale values by argument s and return result in new pixel
 Pixel.prototype.copyMultiplyScalar = function(s) {
   var q = new Pixel(0, 0, 0);
@@ -286,6 +308,70 @@ Image.prototype.copy = function() {
   }
   return new Image(this.width, this.height, data);
 };
+
+Image.prototype.blur = function(sigma) {
+  var newImg = this.copy();
+  const winR = Math.round(sigma*3);
+  for (let y = 0; y < this.height; y++) {
+    for (let x = 0; x < this.width; x++) {
+      // horizontal kernel multiplying
+      let sum0 = 0;
+      let sum1 = 0;
+      let sum2 = 0;
+      let gSum = 0;
+      let i;
+      for(i = x-winR; i <= x+winR; i++) {
+        // get the pixel val, muliply by the gausian function
+        // keep track of the weighted sum of
+        if (i >= 0 && i < this.width && y < this.height){
+          let pix = this.getPixel(i, y);
+          
+          let gauss = Math.exp((-1*(i-x)*(i-x))/(2*sigma*sigma));
+          gSum += gauss;
+          // debugger
+          sum0 += pix.r*gauss;
+          sum1 += pix.g*gauss;
+          sum2 += pix.b*gauss;
+        }
+      }
+      let pixel = new Pixel(0,0,0,1);
+      pixel.r = clamp(sum0/gSum,0,1);
+      pixel.g = clamp(sum1/gSum), 0,1 ;
+      pixel.b = clamp(sum2/gSum, 0, 1);
+      newImg.setPixel(x, y, pixel);
+
+    }
+  }
+  // var newImg2 = newImg.copy();
+  for (let x = 0; x < this.width; x++) {
+    for (let y = 0; y < this.height; y++) {
+      let sum0 = 0;
+      let sum1 = 0;
+      let sum2 = 0;
+      let gSum = 0;
+      let i;
+      for(i = y-winR; i <= y+winR; i++) {
+          // get the pixel val, muliply by the gausian function
+          // keep track of the weighted sum of
+          if (x >= 0 && i >= 0 && x < this.width && i < this.height){
+              let pix = newImg.getPixel(x, i);
+              
+              let gauss = Math.exp((-1*(i-y)*(i-y))/(2*sigma*sigma));
+              gSum += gauss;
+              sum0 += pix.r*gauss;
+              sum1 += pix.g*gauss;
+              sum2 += pix.b*gauss;
+          }  
+      }
+      let pixel = new Pixel(0,0,0,1);
+      pixel.r = clamp(sum0/gSum,0,1);
+      pixel.g = clamp(sum1/gSum), 0,1 ;
+      pixel.b = clamp(sum2/gSum, 0, 1);
+      this.setPixel(x, y, pixel);
+    }
+  }
+}
+
 
 Image.prototype.getImgData = function() {
   // this function should be this one-liner, but it only works in firefox and safari:

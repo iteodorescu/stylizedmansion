@@ -98,6 +98,7 @@ Renderer.clear = function() {
 
 Renderer.displayImage = function() {
   this.buffer.display();
+
 };
 
 Renderer.render = function() {
@@ -152,8 +153,13 @@ Renderer.render = function() {
       }
     }
   }
-
+  this.buffer.blur(3);
   this.displayImage();
+  // if(painterly){
+    //call blur on buffer
+   
+  // }
+   //this.displayImage();
 };
 
 Renderer.getPhongMaterial = function(uv_here, material) {
