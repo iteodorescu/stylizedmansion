@@ -74,10 +74,12 @@ Gui.pushMesh = function(newMesh) {
       name: "Mesh " + (Gui.meshID++).toString(),
       meshName: GuiConfig.meshFileNames[0],
       useMaterial: false,
+      tx: 0,
+      tz: 0
     };
   }
 
-  newMesh.meshInstance = new MeshInstance(newMesh.meshName, newMesh.useMaterial);
+  newMesh.meshInstance = new MeshInstance(newMesh.meshName, newMesh.useMaterial, new THREE.Vector3(newMesh.tx, 0, newMesh.tz));
 
   newMesh.delete = function() {
     Renderer.removeMeshInstance(this.meshInstance);
@@ -92,7 +94,7 @@ Gui.pushMesh = function(newMesh) {
 
   newMesh.updateMesh = function() {
     Renderer.removeMeshInstance(this.meshInstance);
-    this.meshInstance = new MeshInstance(this.meshName, newMesh.useMaterial);
+    this.meshInstance = new MeshInstance(this.meshName, newMesh.useMaterial, new THREE.Vector3(newMesh.tx, 0, newMesh.tz));
     Renderer.addMeshInstance(this.meshInstance);
     // Gui.updateUrl();
   };
@@ -110,6 +112,24 @@ Gui.pushMesh = function(newMesh) {
   );
 
   handler = meshFolder.add(newMesh, "useMaterial").name("Use Material");
+  handler.onChange(
+    (function(newMesh) {
+      return function() {
+        newMesh.updateMesh();
+      };
+    })(newMesh)
+  );
+
+  handler = meshFolder.add(newMesh, "tx", -10, 10).name("Translate X");
+  handler.onChange(
+    (function(newMesh) {
+      return function() {
+        newMesh.updateMesh();
+      };
+    })(newMesh)
+  );
+
+  handler = meshFolder.add(newMesh, "tz", -5, 10).name("Translate Z");
   handler.onChange(
     (function(newMesh) {
       return function() {
