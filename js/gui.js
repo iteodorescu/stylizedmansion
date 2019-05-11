@@ -75,7 +75,8 @@ Gui.pushMesh = function(newMesh) {
       meshName: GuiConfig.meshFileNames[0],
       useMaterial: false,
       tx: 0,
-      tz: 0
+      tz: 0,
+      ry: 0
     };
   }
 
@@ -94,7 +95,7 @@ Gui.pushMesh = function(newMesh) {
 
   newMesh.updateMesh = function() {
     Renderer.removeMeshInstance(this.meshInstance);
-    this.meshInstance = new MeshInstance(this.meshName, newMesh.useMaterial, new THREE.Vector3(newMesh.tx, 0, newMesh.tz));
+    this.meshInstance = new MeshInstance(this.meshName, newMesh.useMaterial, this.meshInstance.mesh.translate, this.meshInstance.mesh.yAngle);
     Renderer.addMeshInstance(this.meshInstance);
     // Gui.updateUrl();
   };
@@ -129,6 +130,7 @@ Gui.pushMesh = function(newMesh) {
         newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
             v.x = newMesh.tx + newMesh.meshInstance.mesh.original_vertices[index].x
         })
+        newMesh.meshInstance.mesh.computeVertexNormals();
       };
     })(newMesh)
   );
@@ -142,6 +144,28 @@ Gui.pushMesh = function(newMesh) {
         newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
             v.z = newMesh.tz + newMesh.meshInstance.mesh.original_vertices[index].z
         })
+        newMesh.meshInstance.mesh.computeVertexNormals();
+      };
+    })(newMesh)
+  );
+
+  handler = meshFolder.add(newMesh, "ry", -180, 180).name("Rotation around y axis");
+  handler.onChange(
+    (function(newMesh) {
+      return function() {
+        // newMesh.updateMesh();
+        var radians = newMesh.ry * Math.PI / 180
+        var angle = radians - newMesh.meshInstance.mesh.yAngle
+        newMesh.meshInstance.mesh.yAngle = radians
+        var cos = Math.cos(angle)
+        var sin = Math.sin(angle)
+        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
+            let x = newMesh.meshInstance.mesh.vertices[index].x
+            let z = newMesh.meshInstance.mesh.vertices[index].z
+            v.z = z*cos - x*sin
+            v.x = z*sin + x*cos
+        })
+        newMesh.meshInstance.mesh.computeVertexNormals();
       };
     })(newMesh)
   );
