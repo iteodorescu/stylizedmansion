@@ -4,22 +4,14 @@ var GuiConfig = GuiConfig || {};
 
 GuiConfig.meshFileNames = [
   "cube.obj",
-  "tetrahedron.obj",
-  "teapot.obj",
   "cow.obj",
-  "cheetah.obj",
-  "hand.obj",
-  "sheep.obj",
-  "afrhead.obj",
-  "afreye.obj",
-  "boggiehead.obj",
-  "boggieeyes.obj",
-  "boggiebody.obj",
-  "diablo.obj",
+  "horse.obj",
+  "houseF.obj",
+  "Cartoon Trees.obj"
 ];
 
 // GuiConfig.resolutionOptions = ["320x240", "640x480", "800x600"];
-GuiConfig.shaderOptions = ["Wire", "Flat", "Gouraud", "Phong"];
+GuiConfig.shaderOptions = ["Wire", "Flat", "Toon", "Pen and Ink"];
 GuiConfig.reflectionModelOptions = ["Diffuse", "Phong"];
 
 GuiConfig.controlDefs = [
@@ -29,13 +21,6 @@ GuiConfig.controlDefs = [
     defaultVal: Gui.pushMesh,
     isButton: true,
   },
-
-//   {
-//     name: "Resolution",
-//     type: "dropdown",
-//     defaultVal: GuiConfig.resolutionOptions[0],
-//     dropdownOptions: GuiConfig.resolutionOptions,
-//   },
 
   {
     name: "Shading Model",

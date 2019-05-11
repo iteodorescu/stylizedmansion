@@ -153,26 +153,6 @@ Gui.handleControlsChange = function() {
     }
 
     switch (controlDef.name) {
-    //   case "Resolution":
-    //     var prevW = Renderer.width;
-    //     var prevH = Renderer.height;
-
-    //     if (converted_val == "full") {
-    //       var newW = window.innerWidth;
-    //       var newH = window.innerHeight;
-    //     } else {
-    //       var parts = converted_val.split("x");
-    //       var newW = parts[0];
-    //       var newH = parts[1];
-    //     }
-    //     if (prevH != newH && prevW != newW) {
-    //       Renderer.width = newW;
-    //       Renderer.height = newH;
-    //       Renderer.initialize(); // requires reinitialization for trackball to work
-    //       Main.controls = new THREE.TrackballControls(Renderer.camera, Main.canvas);
-    //     }
-
-    //     break;
       case "Shading Model":
         Renderer.shaderMode = converted_val;
         break;
@@ -208,94 +188,6 @@ function stripFloatError(number) {
   }
 }
 
-// Gui.parseUrl = function() {
-//   for (var i = 0; i < Parser.commands.length; i++) {
-//     var cmd = Parser.commands[i];
-
-//     if (cmd.name == "Mesh") {
-//       var newMesh = {
-//         name: "Mesh " + (Gui.meshID++).toString(),
-//         meshName: cmd.args[0],
-//         useMaterial: cmd.args[1] == "true" ? true : false,
-//       };
-//       this.pushMesh(newMesh);
-//     } else if (cmd.name == "Camera") {
-//       Renderer.cameraPosition.set(cmd.args[0][0], cmd.args[0][1], cmd.args[0][2]);
-//       Renderer.cameraUpVector.set(cmd.args[1][0], cmd.args[1][1], cmd.args[1][2]);
-//       Renderer.cameraLookAtVector.set(cmd.args[2][0], cmd.args[2][1], cmd.args[2][2]);
-//       Renderer.updateCameraParameters();
-//     } else {
-//       this.controlParamsStruct[cmd.name] = cmd.args[0];
-//     }
-//   }
-// };
-
-// Gui.getUrl = function() {
-//   var url = "";
-
-//   // camera pose
-//   url += "Camera=";
-//   url +=
-//     "[" +
-//     stripFloatError(Renderer.cameraPosition.x) +
-//     "," +
-//     stripFloatError(Renderer.cameraPosition.y) +
-//     "," +
-//     stripFloatError(Renderer.cameraPosition.z) +
-//     "];";
-//   url +=
-//     "[" +
-//     stripFloatError(Renderer.cameraUpVector.x) +
-//     "," +
-//     stripFloatError(Renderer.cameraUpVector.y) +
-//     "," +
-//     stripFloatError(Renderer.cameraUpVector.z) +
-//     "];";
-//   url +=
-//     "[" +
-//     stripFloatError(Renderer.cameraLookAtVector.x) +
-//     "," +
-//     stripFloatError(Renderer.cameraLookAtVector.y) +
-//     "," +
-//     stripFloatError(Renderer.cameraLookAtVector.z) +
-//     "]";
-
-//   for (var meshIdx = 0; meshIdx < this.meshList.length; meshIdx++) {
-//     var thisMesh = this.meshList[meshIdx];
-//     url += "&" + "Mesh=" + thisMesh.meshName + ";" + (thisMesh.useMaterial ? "true" : "false");
-//   }
-
-//   for (var controlIdx = 0; controlIdx < GuiConfig.controlDefs.length; controlIdx++) {
-//     var controlDef = GuiConfig.controlDefs[controlIdx];
-//     if (controlDef.type == "button") {
-//       continue;
-//     }
-//     url += "&" + controlDef.name + "=";
-//     var val = this.controlParamsStruct[controlDef.name];
-
-//     if (val.constructor === Array) {
-//       url += "[";
-//       for (var j = 0; j < val.length; j++) {
-//         url += ((j > 0 && ",") || "") + stripFloatError(val[j]);
-//       }
-//       url += "]";
-//     } else {
-//       url += val;
-//     }
-//   }
-
-//   url = url.replace(/ /g, "_");
-
-//   return url;
-// };
-
-// Gui.updateUrl = function() {
-//   if (Gui.batchMode) return;
-
-//   var url = (Gui.batchMode && "batch.html?") || "index.html?";
-//   url += Gui.getUrl();
-//   history.pushState({}, "", url);
-// };
 
 Gui.alertOnce = function(msg, divName) {
   divName = divName || "alert_div";
