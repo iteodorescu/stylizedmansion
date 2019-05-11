@@ -308,68 +308,150 @@ Image.prototype.copy = function() {
   }
   return new Image(this.width, this.height, data);
 };
-
+// gaussiam blur - implement a box filter instead
 Image.prototype.blur = function(sigma) {
   var newImg = this.copy();
-  const winR = Math.round(sigma*3);
-  for (let y = 0; y < this.height; y++) {
-    for (let x = 0; x < this.width; x++) {
-      // horizontal kernel multiplying
-      let sum0 = 0;
-      let sum1 = 0;
-      let sum2 = 0;
-      let gSum = 0;
-      let i;
-      for(i = x-winR; i <= x+winR; i++) {
-        // get the pixel val, muliply by the gausian function
-        // keep track of the weighted sum of
-        if (i >= 0 && i < this.width && y < this.height){
-          let pix = this.getPixel(i, y);
-          
-          let gauss = Math.exp((-1*(i-x)*(i-x))/(2*sigma*sigma));
-          gSum += gauss;
-          // debugger
-          sum0 += pix.r*gauss;
-          sum1 += pix.g*gauss;
-          sum2 += pix.b*gauss;
-        }
-      }
-      let pixel = new Pixel(0,0,0,1);
-      pixel.r = clamp(sum0/gSum,0,1);
-      pixel.g = clamp(sum1/gSum), 0,1 ;
-      pixel.b = clamp(sum2/gSum, 0, 1);
-      newImg.setPixel(x, y, pixel);
+  const winR = sigma;
 
-    }
-  }
-  // var newImg2 = newImg.copy();
+  /* IMPLEMENTING THE BOX FILTER INSTEAD OF GAUSSIAN: */
   for (let x = 0; x < this.width; x++) {
     for (let y = 0; y < this.height; y++) {
+      // go through the box of matrix around this current pixel - SIGMA
+      let count = 0;
       let sum0 = 0;
       let sum1 = 0;
       let sum2 = 0;
-      let gSum = 0;
-      let i;
-      for(i = y-winR; i <= y+winR; i++) {
-          // get the pixel val, muliply by the gausian function
-          // keep track of the weighted sum of
-          if (x >= 0 && i >= 0 && x < this.width && i < this.height){
-              let pix = newImg.getPixel(x, i);
-              
-              let gauss = Math.exp((-1*(i-y)*(i-y))/(2*sigma*sigma));
-              gSum += gauss;
-              sum0 += pix.r*gauss;
-              sum1 += pix.g*gauss;
-              sum2 += pix.b*gauss;
-          }  
+      // get the pixel val, muliply by the gausian function
+      // keep track of the weighted sum of
+      for(let i = x-winR; i <= x+winR; i++) {
+        for (let j = y; j < (y+2*winR); j++) {
+          if (i >= 0 && i < this.width && j < this.height){
+            let pix = this.getPixel(i, j);
+            // sum of pixels
+            sum0 += pix.r;
+            sum1 += pix.g;
+            sum2 += pix.b;
+            count++;
+          }
+        }
       }
+        
       let pixel = new Pixel(0,0,0,1);
-      pixel.r = clamp(sum0/gSum,0,1);
-      pixel.g = clamp(sum1/gSum), 0,1 ;
-      pixel.b = clamp(sum2/gSum, 0, 1);
+      pixel.r = clamp(sum0/count,0,1);
+      pixel.g = clamp(sum1/count), 0,1 ;
+      pixel.b = clamp(sum2/count, 0, 1);
       this.setPixel(x, y, pixel);
     }
   }
+  // get the error img
+  for (let x = 0; x < this.width; x++) {
+    for (let y = 0; y < this.height; y++) {
+      // get the error per pixel
+      let pix1 = this.getPixel(x, y);
+      let pix2 = newImg.getPixel(x, y);
+      let diff = pix1.minus(pix2);
+      let vec = new THREE.Vector3(diff.r, diff.g, diff.b);
+      let len = vec.length();
+      if (len >= 0.3) {
+        // call method that creates a stroke
+        let radius = 60;
+        let rand = Math.random();
+        if((x+y)%5 == 0){
+        this.setBrushStroke(x,y, radius, pix2);
+        }
+      }
+
+    }
+  }
+
+
+
+
+  // for (let y = 0; y < this.height; y++) {
+  //   for (let x = 0; x < this.width; x++) {
+  //     // horizontal kernel multiplying
+  //     let sum0 = 0;
+  //     let sum1 = 0;
+  //     let sum2 = 0;
+  //     let gSum = 0;
+  //     let i;
+  //     for(i = x-winR; i <= x+winR; i++) {
+  //       // get the pixel val, muliply by the gausian function
+  //       // keep track of the weighted sum of
+  //       if (i >= 0 && i < this.width && y < this.height){
+  //         let pix = this.getPixel(i, y);
+          
+  //         let gauss = Math.exp((-1*(i-x)*(i-x))/(2*sigma*sigma));
+  //         gSum += gauss;
+  //         // debugger
+  //         sum0 += pix.r*gauss;
+  //         sum1 += pix.g*gauss;
+  //         sum2 += pix.b*gauss;
+  //       }
+  //     }
+  //     let pixel = new Pixel(0,0,0,1);
+  //     pixel.r = clamp(sum0/gSum,0,1);
+  //     pixel.g = clamp(sum1/gSum), 0,1 ;
+  //     pixel.b = clamp(sum2/gSum, 0, 1);
+  //     newImg.setPixel(x, y, pixel);
+
+  //   }
+  // }
+  // // var newImg2 = newImg.copy();
+  // for (let x = 0; x < this.width; x++) {
+  //   for (let y = 0; y < this.height; y++) {
+  //     let sum0 = 0;
+  //     let sum1 = 0;
+  //     let sum2 = 0;
+  //     let gSum = 0;
+  //     let i;
+  //     for(i = y-winR; i <= y+winR; i++) {
+  //         // get the pixel val, muliply by the gausian function
+  //         // keep track of the weighted sum of
+  //         if (x >= 0 && i >= 0 && x < this.width && i < this.height){
+  //             let pix = newImg.getPixel(x, i);
+              
+  //             let gauss = Math.exp((-1*(i-y)*(i-y))/(2*sigma*sigma));
+  //             gSum += gauss;
+  //             sum0 += pix.r*gauss;
+  //             sum1 += pix.g*gauss;
+  //             sum2 += pix.b*gauss;
+  //         }  
+  //     }
+  //     let pixel = new Pixel(0,0,0,1);
+  //     pixel.r = clamp(sum0/gSum,0,1);
+  //     pixel.g = clamp(sum1/gSum), 0,1 ;
+  //     pixel.b = clamp(sum2/gSum, 0, 1);
+  //     this.setPixel(x, y, pixel);
+  //   }
+  // }
+}
+
+// check type of brush stroke
+Image.prototype.setBrushStroke = function(x,y, radius, color) {
+  // circular brush stroke
+  for (let i = x - radius; i < x + radius; i++) {
+    for (let j = y - radius; j < y + radius; j++) {
+      // calculate the distance - create private method
+      // x, y - current coords
+      // centers
+      if (i >= 0 && j >= 0 && i < this.width && j < this.height) {
+        if (inCircle(x, y, i, j, radius)) {
+          // console.log(x, y);
+          this.setPixel(x, y, color);
+        }
+      }
+    }
+  }
+ }
+
+ function inCircle(x, y, i, j, radius) {
+  let dist = (i - x) * (i - x) + (j - y) * (j - y);
+  let ret = false;
+  if (dist <= (radius * radius)) {
+    ret = true;
+  }
+  return ret;
 }
 
 

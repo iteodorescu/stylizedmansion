@@ -155,6 +155,7 @@ Renderer.render = function() {
   }
   this.buffer.blur(3);
   this.displayImage();
+  
   // if(painterly){
     //call blur on buffer
    
