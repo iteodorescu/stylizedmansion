@@ -42,7 +42,18 @@ Mesh.prototype.computeVertexNormals = function() {
   }
 };
 
-Main.getMesh = function(filename) {
+Mesh.prototype.translate = function(translate) {
+    console.log("before")
+    console.log(this.vertices)
+    this.vertices.forEach((v) => {
+        v = v.add(translate)
+    })
+    this.computeVertexNormals()
+    console.log("translated")
+    console.log(this.vertices)
+}
+
+Main.getMesh = function(filename, translate) {
   var newMesh = new Mesh();
 
   var filePath = "obj/" + filename; // all obj files are in the obj folder
@@ -54,6 +65,12 @@ Main.getMesh = function(filename) {
     var geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
     geometry.mergeVertices(); // otherwise we have duplicated vertices
     newMesh.vertices = geometry.vertices;
+    if (translate !== undefined) {
+        newMesh.vertices.forEach((v) => {
+            v = v.add(translate)
+        })
+    }
+    // console.log(newMesh)
     newMesh.faces = geometry.faces;
     newMesh.uvs = geometry.faceVertexUvs[0];
 
@@ -94,9 +111,9 @@ Main.getTexture = function(filename) {
   return imageObj;
 };
 
-function MeshInstance(filename, useMaterial) {
+function MeshInstance(filename, useMaterial, translate) {
   Main.itemsToLoad = 4;
-  this.mesh = filename !== undefined ? Main.getMesh(filename) : undefined;
+  this.mesh = filename !== undefined ? Main.getMesh(filename, translate) : undefined;
 
   this.material = {};
   if (useMaterial) {
