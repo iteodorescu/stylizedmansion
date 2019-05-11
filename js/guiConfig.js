@@ -6,8 +6,13 @@ GuiConfig.meshFileNames = [
   "cube.obj",
   "cow.obj",
   "horse.obj",
+  "house.obj",
   "houseF.obj",
-  "Cartoon Trees.obj"
+  "Cartoon Trees.obj",
+  "tree1.obj",
+  "tree2.obj",
+  "tree3.obj",
+  "LowPoly Cartoon Houses Pack02.obj"
 ];
 
 // GuiConfig.resolutionOptions = ["320x240", "640x480", "800x600"];
