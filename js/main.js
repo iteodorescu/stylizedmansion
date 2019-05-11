@@ -13,6 +13,8 @@ var Main = Main || {
 
 function Mesh() {
   this.vertices = []; // array of vertex positions
+  this.original_vertices = [];
+  this.translate = new THREE.Vector3();
   this.faces = []; // array of lists of vertex indices
   this.vertex_normals = [];
   this.uvs = []; // array of uvs of faces
@@ -42,16 +44,16 @@ Mesh.prototype.computeVertexNormals = function() {
   }
 };
 
-Mesh.prototype.translate = function(translate) {
-    console.log("before")
-    console.log(this.vertices)
-    this.vertices.forEach((v) => {
-        v = v.add(translate)
-    })
-    this.computeVertexNormals()
-    console.log("translated")
-    console.log(this.vertices)
-}
+// Mesh.prototype.translate = function(translate) {
+//     console.log("before")
+//     console.log(this.vertices)
+//     this.vertices.forEach((v) => {
+//         v = v.add(translate)
+//     })
+//     this.computeVertexNormals()
+//     console.log("translated")
+//     console.log(this.vertices)
+// }
 
 Main.getMesh = function(filename, translate) {
   var newMesh = new Mesh();
@@ -65,7 +67,12 @@ Main.getMesh = function(filename, translate) {
     var geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
     geometry.mergeVertices(); // otherwise we have duplicated vertices
     newMesh.vertices = geometry.vertices;
+    newMesh.original_vertices = []
+
+    newMesh.vertices.forEach((v) => newMesh.original_vertices.push(v.clone()))
+
     if (translate !== undefined) {
+        newMesh.translate = translate
         newMesh.vertices.forEach((v) => {
             v = v.add(translate)
         })
@@ -112,6 +119,7 @@ Main.getTexture = function(filename) {
 };
 
 function MeshInstance(filename, useMaterial, translate) {
+    console.log("Mesh instance called")
   Main.itemsToLoad = 4;
   this.mesh = filename !== undefined ? Main.getMesh(filename, translate) : undefined;
 

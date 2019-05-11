@@ -124,16 +124,24 @@ Gui.pushMesh = function(newMesh) {
   handler.onChange(
     (function(newMesh) {
       return function() {
-        newMesh.updateMesh();
+        // newMesh.updateMesh();
+        newMesh.meshInstance.mesh.translate.x = newMesh.tx
+        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
+            v.x = newMesh.tx + newMesh.meshInstance.mesh.original_vertices[index].x
+        })
       };
     })(newMesh)
   );
 
-  handler = meshFolder.add(newMesh, "tz", -5, 10).name("Translate Z");
+  handler = meshFolder.add(newMesh, "tz", -7, 7).name("Translate Z");
   handler.onChange(
     (function(newMesh) {
       return function() {
-        newMesh.updateMesh();
+        // newMesh.updateMesh();
+        newMesh.meshInstance.mesh.translate.z = newMesh.tz
+        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
+            v.z = newMesh.tz + newMesh.meshInstance.mesh.original_vertices[index].z
+        })
       };
     })(newMesh)
   );
