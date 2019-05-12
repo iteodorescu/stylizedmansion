@@ -16,7 +16,8 @@ var camera, scene, renderer, controls;
 var house;
 var torusMesh, planeMesh;
 var renderTarget, cubeMap;
-
+var composer;
+var effectSobel;
 
 init();
 animate();
@@ -58,6 +59,7 @@ function init() {
 
     addObject('house')
 
+
     setCubeMap()
 
     renderer.setPixelRatio( window.devicePixelRatio );
@@ -87,6 +89,16 @@ function init() {
     handler.onChange(function() {
         setCubeMap()
     })
+
+
+    composer = new THREE.EffectComposer(renderer);
+
+    var renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    var sepiaPass = new THREE.ShaderPass(THREE.SepiaShader);
+    composer.addPass(sepiaPass);
+
 
     // gui.add( params, 'roughness', 0, 1, 0.01 );
     // gui.add( params, 'metalness', 0, 1, 0.01 );
@@ -140,6 +152,7 @@ function onWindowResize() {
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
 
+
     renderer.setSize( width, height );
 
 }
@@ -177,11 +190,11 @@ function setCubeMap() {
 }
 
 function render() {
-    lon += .15;
+    // lon += .15;
 
-    lat = Math.max( - 85, Math.min( 85, lat ) );
-    phi = THREE.Math.degToRad( 90 - lat );
-    theta = THREE.Math.degToRad( lon );
+    // lat = Math.max( - 85, Math.min( 85, lat ) );
+    // phi = THREE.Math.degToRad( 90 - lat );
+    // theta = THREE.Math.degToRad( lon );
 
     if (house) {
 
@@ -208,7 +221,8 @@ function render() {
     scene.background = cubeMap;
     renderer.toneMappingExposure = params.exposure;
 
-    renderer.render( scene, camera );
+    // renderer.render( scene, camera );
+    composer.render();
 
 }
 
