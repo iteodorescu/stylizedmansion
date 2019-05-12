@@ -1,44 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+	<head>
+		<title>threejs webgl - materials - hdr environment mapping</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<link rel="stylesheet" href="css/style.css">
+	</head>
+	<body>
 
-<head>
-  <!-- the next three lines try to discourage browser from keeping page in cache -->
-  <meta http-equiv="Pragma" content="no-cache">
-  <meta http-equiv="Expires" content="-1">
-  <meta http-equiv="cache-control" content="no-store">
+		<div id="container"></div>
+		<div id="title">Stylized mansion</div>
+		<div id="info">a project by Somya Arora, Wendy Ho, Ioana Teodorescu</div>
 
-  <title> COS426 Final Project &mdash; Stylized town</title>
-  <link href="css/style.css" type="text/css" rel="stylesheet" />
-</head>
+		<script src="libjs/three.js"></script>
+		<script src="libjs/OrbitControls.js"></script>
 
-<body>
-  <!-- libraries -->
-  <script src="libjs/three.min.js"></script>
-  <script src="libjs/stats.min.js"></script>
-  <script src="libjs/dat.gui.js">
-  </script>
-  <script src="libjs/TrackballControls.js"></script>
-  <script src="libjs/OBJLoader.js"></script>
+		<script src="libjs/RGBELoader.js"></script>
+		<script src="libjs/HDRCubeTextureLoader.js"></script>
+		<script src="libjs/OBJLoader.js"></script>
 
-  <script src="js/image.js"></script>
-  <script src="js/renderer.js"></script>
+		<script src="libjs/WebGL.js"></script>
+        <script src="libjs/stats.min.js"></script>
+        
+        <script src="libjs/EffectComposer.js"></script>
+        <script src="passes/ShaderPass.js"></script>
+        <script src="passes/RenderPass.js"></script>
+        <script src="shaders/CopyShader.js"></script>
+        <script src="shaders/LuminosityShader.js"></script>
 
-  <script src="js/parser.js"></script>
+        <script src="shaders/custom/toon.js"></script>
 
-  <script src="js/gui.js"></script>
-  <script src="js/guiConfig.js"></script>
-  <script src="js/main.js">
-  </script>
+        <script src="shaders/SepiaShader.js"></script>
+        <script src="libjs/DigitalGlitch.js"></script>
+        <script src="passes/GlitchPass.js"></script>
 
-  <div id="stats"></div>
-  <div id="main_div">
-    <h1 id="overlay"> <span class="assignment">COS426 Final Project<br></span> Stylized town </h1>
+		<script src="libjs/PMREMGenerator.js"></script>
+		<script src="libjs/PMREMCubeUVPacker.js"></script>
+		<script src="libjs/dat.gui.min.js"></script>
 
-    <!-- <h2 id="student"></h2> -->
-    <canvas id="canvas"> </canvas>
-  </div>
-  <div id="alert_div" title="alert"> </div>
+        <script src="js/main.js"></script>
+        
 
-</body>
-
+	</body>
 </html>

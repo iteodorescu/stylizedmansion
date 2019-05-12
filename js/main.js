@@ -1,283 +1,270 @@
-"use strict";
+if ( WEBGL.isWebGLAvailable() === false ) {
 
-var Main = Main || {
-  meshes: {},
-  // meshesLoading: 0,
-  // imagesLoading: 0,
-  itemsToLoad: 0,
-  canvas: undefined,
-  context: undefined,
-  controls: undefined,
-  stats: undefined,
-};
+    document.body.appendChild( WEBGL.getWebGLErrorMessage() );
 
-function Mesh() {
-  this.vertices = []; // array of vertex positions
-  this.original_vertices = [];
-  this.translate = new THREE.Vector3();
-  this.yAngle = 0;
-  this.faces = []; // array of lists of vertex indices
-  this.vertex_normals = [];
-  this.uvs = []; // array of uvs of faces
-  this.filename = undefined;
 }
 
-Mesh.prototype.computeVertexNormals = function() {
-  for (var i = 0; i < this.vertices.length; i++) {
-    this.vertex_normals.push(new THREE.Vector3(0.0, 0.0, 0.0));
-  }
-
-  for (var faceIdx = 0; faceIdx < this.faces.length; faceIdx++) {
-    var face = this.faces[faceIdx];
-    var va = new THREE.Vector3();
-    va.subVectors(this.vertices[face.b], this.vertices[face.a]);
-    var vb = new THREE.Vector3();
-    vb.subVectors(this.vertices[face.c], this.vertices[face.a]);
-    var n = new THREE.Vector3();
-    n.crossVectors(va, vb);
-    this.vertex_normals[face.a].add(n);
-    this.vertex_normals[face.b].add(n);
-    this.vertex_normals[face.c].add(n);
-  }
-
-  for (var i = 0; i < this.vertices.length; i++) {
-    this.vertex_normals[i].normalize();
-  }
+var params = {
+    env: 'Citadella2',
+    roughness: 0.0,
+    metalness: 0.0,
+    exposure: 1.0
 };
 
-// Mesh.prototype.translate = function(translate) {
-//     console.log("before")
-//     console.log(this.vertices)
-//     this.vertices.forEach((v) => {
-//         v = v.add(translate)
-//     })
-//     this.computeVertexNormals()
-//     console.log("translated")
-//     console.log(this.vertices)
-// }
+var container, stats;
+var camera, scene, renderer, controls;
+var house;
+var torusMesh, planeMesh;
+var renderTarget, cubeMap;
+var composer;
+var effectSobel;
 
-Main.getMesh = function(filename, translate, yAngle) {
-  var newMesh = new Mesh();
+init();
+animate();
 
-  var filePath = "obj/" + filename; // all obj files are in the obj folder
+function init() {
 
-  var manager = new THREE.LoadingManager();
-  var loader = new THREE.OBJLoader(manager);
+    container = document.createElement( 'div' );
+    document.body.appendChild( container );
 
-  loader.load(filePath, function(object) {
-    var geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
-    geometry.mergeVertices(); // otherwise we have duplicated vertices
-    newMesh.vertices = geometry.vertices;
-    newMesh.original_vertices = []
+    camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
+    camera.position.set( 0, 0, 120 );
 
-    newMesh.vertices.forEach((v) => newMesh.original_vertices.push(v.clone()))
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color( 0x000000 );
 
-    if (translate !== undefined) {
-        newMesh.translate = translate
-        newMesh.vertices.forEach((v) => {
-            v = v.add(translate)
-        })
-    }
+    renderer = new THREE.WebGLRenderer();
+    renderer.toneMapping = THREE.LinearToneMapping;
 
-    if (yAngle !== undefined && yAngle !== 0) {
-        newMesh.yAngle = yAngle
-        var radians = yAngle * Math.PI / 180
-        var angle = radians - newMesh.yAngle
-        newMesh.yAngle = radians
-        var cos = Math.cos(angle)
-        var sin = Math.sin(angle)
-        newMesh.vertices.forEach((v, index) => {
-            let x = newMesh.vertices[index].x
-            let z = newMesh.vertices[index].z
-            v.z = z*cos - x*sin
-            v.x = z*sin + x*cos
-        })
-    }
-    // console.log(newMesh)
-    newMesh.faces = geometry.faces;
-    newMesh.uvs = geometry.faceVertexUvs[0];
+    //
 
-    newMesh.filename = filename;
-    newMesh.computeVertexNormals();
-    Main.itemsToLoad--;
-    if (Main.itemsToLoad === 0) {
-      Main.onMeshesLoaded();
-    }
-  });
-  return newMesh;
-};
+    var geometry = new THREE.TorusKnotBufferGeometry( 18, 8, 150, 20 );
+    var material = new THREE.MeshStandardMaterial( {
+        color: 0xffffff,
+        metalness: params.metalness,
+        roughness: params.roughness
+    } );
 
-Main.getTexture = function(filename) {
-  var imageObj = new Image(0, 0, []);
-  var filePath = "textures/" + filename;
-  var image = document.createElement("img");
+    torusMesh = new THREE.Mesh( geometry, material );
+    // scene.add( torusMesh );
 
-  image.onload = function() {
-    var canvas = document.createElement("canvas");
-    var context = canvas.getContext("2d");
-    canvas.width = image.width;
-    canvas.height = image.height;
-    context.drawImage(image, 0, 0);
-    var imageData = context.getImageData(0, 0, image.width, image.height);
-    context.clearRect(0, 0, canvas.width, canvas.height);
 
-    imageObj.width = image.width; // re-assign imageObj value
-    imageObj.height = image.height;
-    imageObj.data = imageData.data;
+    var geometry = new THREE.PlaneBufferGeometry( 200, 200 );
+    var material = new THREE.MeshBasicMaterial();
 
-    Main.itemsToLoad--;
-    if (Main.itemsToLoad === 0) {
-      Main.onMeshesLoaded();
-    }
-  };
-  image.src = filePath;
-  return imageObj;
-};
+    planeMesh = new THREE.Mesh( geometry, material );
+    planeMesh.position.y = - 50;
+    planeMesh.rotation.x = - Math.PI * 0.5;
+    scene.add( planeMesh );
 
-function MeshInstance(filename, useMaterial, translate, yAngle) {
-    console.log("Mesh instance called")
-  Main.itemsToLoad = 4;
-  this.mesh = filename !== undefined ? Main.getMesh(filename, translate, yAngle) : undefined;
+    addObject('house')
 
-  this.material = {};
-  if (useMaterial) {
-    var parts = filename.split(".");
-    var jsonFilename = parts[0] + ".json";
 
-    if (UrlExists("json/" + jsonFilename)) {
-      var jsonObj = Parser.loadJson("json/" + jsonFilename);
-    } else {
-      alert(jsonFilename + " does not exist!");
-    }
+    setCubeMap()
 
-    if (jsonObj !== undefined) {
-      if (jsonObj.diffuse !== undefined) {
-        if (typeof jsonObj.diffuse === "string") {
-          // if it's a diffuse map
-          this.material.diffuse = Main.getTexture(jsonObj.diffuse);
-        } else {
-          // just a color
-          this.material.diffuse = new Pixel(
-            jsonObj.diffuse[0],
-            jsonObj.diffuse[1],
-            jsonObj.diffuse[2]
-          );
+    renderer.setPixelRatio( window.devicePixelRatio );
+    renderer.setSize( window.innerWidth, window.innerHeight );
+    container.appendChild( renderer.domElement );
+
+    //renderer.toneMapping = THREE.ReinhardToneMapping;
+    renderer.gammaInput = true; // ???
+    renderer.gammaOutput = true;
+
+    stats = new Stats();
+    container.appendChild( stats.dom );
+
+    controls = new THREE.OrbitControls( camera, renderer.domElement );
+    controls.minDistance = 50;
+    controls.maxDistance = 300;
+    controls.maxPolarAngle = 0.9 * Math.PI / 2;
+	controls.enableZoom = false;
+
+    window.addEventListener( 'resize', onWindowResize, false );
+
+    var gui = new dat.GUI();
+
+    
+    var handler = gui.add( params, 'env', ['Citadella2', 'Lycksele3'] ); // not working yet
+
+    handler.onChange(function() {
+        setCubeMap()
+    })
+
+
+    composer = new THREE.EffectComposer(renderer);
+
+    var renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // var sepiaPass = new THREE.ShaderPass(THREE.SepiaShader);
+    // composer.addPass(sepiaPass);
+
+    // var effectGrayScale = new THREE.ShaderPass( THREE.LuminosityShader );
+    // composer.addPass( effectGrayScale );
+    
+    // var glitchPass = new THREE.GlitchPass(0);
+    // composer.addPass(glitchPass);
+
+     //custom shader pass
+    
+    
+    var customPass = new THREE.ShaderPass(toon);
+    // customPass.renderToScreen = true;
+    composer.addPass(customPass);
+
+
+    // gui.add( params, 'roughness', 0, 1, 0.01 );
+    // gui.add( params, 'metalness', 0, 1, 0.01 );
+    gui.add( params, 'exposure', 0, 2, 0.01 );
+    gui.open();
+
+}
+
+function addObject (filename) {
+    var loader = new THREE.OBJLoader();
+    var material = new THREE.MeshStandardMaterial( {
+        color: 0xffffff,
+        metalness: params.metalness,
+        roughness: params.roughness
+    } );
+
+    // loader.setMaterials([material])
+    // load a resource
+    loader.load(
+        // resource URL
+        `../obj/${filename}.obj`,
+        // called when resource is loaded
+        function ( object ) {
+            if (filename === 'house') house = object
+            
+            object.material = material
+            scene.add( object ); // .setMaterials() for material? see docs
+
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
         }
-      } else {
-        Main.itemsToLoad--;
-      }
+    );
+}
 
-      if (jsonObj.specular !== undefined) {
-        if (typeof jsonObj.specular === "string") {
-          // if it's a diffuse map
-          this.material.specular = Main.getTexture(jsonObj.specular);
-        } else {
-          // just a color
-          this.material.specular = new Pixel(
-            jsonObj.specular[0],
-            jsonObj.specular[1],
-            jsonObj.specular[2]
-          );
+
+function onWindowResize() {
+
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    camera.aspect = width / height;
+    camera.updateProjectionMatrix();
+
+
+    renderer.setSize( width, height );
+
+}
+
+function animate() {
+
+    requestAnimationFrame( animate );
+
+    stats.begin();
+    render();
+    stats.end();
+
+}
+
+function setCubeMap() {
+    var urls = [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ];
+    cubeMap = new THREE.CubeTextureLoader()
+        .setPath( `./textures/${params.env}/` )
+        .load( urls, function () {
+
+            cubeMap.encoding = THREE.GammaEncoding;
+
+            var pmremGenerator = new THREE.PMREMGenerator( cubeMap );
+            pmremGenerator.update( renderer );
+
+            var pmremCubeUVPacker = new THREE.PMREMCubeUVPacker( pmremGenerator.cubeLods );
+            pmremCubeUVPacker.update( renderer );
+
+            renderTarget = pmremCubeUVPacker.CubeUVRenderTarget;
+
+            pmremGenerator.dispose();
+            pmremCubeUVPacker.dispose();
+
+    } );
+}
+
+function render() {
+    // lon += .15;
+
+    // lat = Math.max( - 85, Math.min( 85, lat ) );
+    // phi = THREE.Math.degToRad( 90 - lat );
+    // theta = THREE.Math.degToRad( lon );
+
+    if (house) {
+
+        // house.material.roughness = params.roughness;
+        // house.material.metalness = params.metalness;
+
+
+        var newEnvMap = renderTarget ? renderTarget.texture : null;
+
+        if ( newEnvMap && newEnvMap !== house.material.envMap ) {
+
+            house.material.envMap = newEnvMap;
+            house.material.needsUpdate = true;
+
+            planeMesh.material.map = newEnvMap;
+            planeMesh.material.needsUpdate = true;
+
         }
-      } else {
-        Main.itemsToLoad--;
-      }
-
-      if (jsonObj.xyzNormal !== undefined) {
-        this.material.xyzNormal = Main.getTexture(jsonObj.xyzNormal);
-      } else {
-        Main.itemsToLoad--;
-      }
     }
-  } else {
-    Main.itemsToLoad -= 3;
-  }
+
+    // house.rotation.y += 0.005;
+    planeMesh.visible = false;
+
+    scene.background = cubeMap;
+    renderer.toneMappingExposure = params.exposure;
+
+    // renderer.render( scene, camera );
+    composer.render();
+
 }
 
-// when HTML is finished loading, do this
-window.onload = function() {
-//   Student.updateHTML();
 
-  Main.canvas = document.getElementById("canvas");
-  Main.context = canvas.getContext("2d");
+///// for dynamic movement/ rotation
 
-  Renderer.initialize();
-  Gui.init();
+var onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
+var lon = 0, lat = 0;
+var phi = 0, theta = 0;
 
-  // load new mesh
-  Main.controls = new THREE.TrackballControls(Renderer.camera, Main.canvas);
-
-  function snapShot() {
-    // get the image data
-    try {
-      var dataURL = document.getElementById("canvas").toDataURL();
-    } catch (err) {
-      alert("Sorry, your browser does not support capturing an image.");
-      return;
-    }
-    // this will force downloading data as an image (rather than open in new window)
-    var url = dataURL.replace(/^data:image\/[^;]/, "data:application/octet-stream");
-    window.open(url); //save as .png
-  }
-
-  window.addEventListener("keyup", function(event) {
-    if (event.which == 73) {
-      //"I"
-      snapShot();
-    }
-  });
-};
-
-Main.onMeshesLoaded = function() {
-  this.stats = new Stats();
-  this.stats.setMode(0); // 0: fps, 1: ms, 2: mb
-
-  var container = document.getElementById("stats");
-  this.stats.domElement.style.position = "absolute";
-  this.stats.domElement.style.bottom = "0px";
-  this.stats.domElement.style.right = "0px";
-  container.appendChild(this.stats.domElement);
-
-  console.log("Start rendering...");
-  repeatRender();
-};
-
-var fpsAve = 0.0;
-
-function repeatRender() {
-  Main.stats.begin();
-  Renderer.render();
-  Main.stats.end();
-
-  Main.controls.update();
-
-  setTimeout(function() {
-    repeatRender();
-  }, 0);
+function onDocumentMouseDown( event ) {
+    event.preventDefault();
+    onPointerDownPointerX = event.clientX;
+    onPointerDownPointerY = event.clientY;
+    onPointerDownLon = lon;
+    onPointerDownLat = lat;
+    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+    document.addEventListener( 'mouseup', onDocumentMouseUp, false );
 }
-
-/////////////////////////////////////
-// utility functions
-
-function assert(condition, message) {
-  if (!condition) {
-    message = message || "Assertion failed";
-    if (typeof Error !== "undefined") {
-      throw new Error(message);
-    }
-    throw message; // Fallback
-  }
-  return condition;
+function onDocumentMouseMove( event ) {
+    lon = ( event.clientX - onPointerDownPointerX ) * 0.1 + onPointerDownLon;
+    lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
 }
-
-function CopyVec(vec) {
-  return new THREE.Vector3(0, 0, 0).copy(vec);
+function onDocumentMouseUp() {
+    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
+    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
 }
-
-// http://stackoverflow.com/questions/3646914/how-do-i-check-if-file-exists-in-jquery-or-javascript
-function UrlExists(url) {
-  var http = new XMLHttpRequest();
-  http.open("HEAD", url, false);
-  http.send(); // still giving unwanted error in console.
-  return http.status != 404;
+function onDocumentMouseWheel( event ) {
+    var fov = camera.fov + event.deltaY * 0.05;
+    camera.fov = THREE.Math.clamp( fov, 10, 75 );
+    camera.updateProjectionMatrix();
 }
