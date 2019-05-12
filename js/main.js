@@ -96,8 +96,21 @@ function init() {
     var renderPass = new THREE.RenderPass(scene, camera);
     composer.addPass(renderPass);
 
-    var sepiaPass = new THREE.ShaderPass(THREE.SepiaShader);
-    composer.addPass(sepiaPass);
+    // var sepiaPass = new THREE.ShaderPass(THREE.SepiaShader);
+    // composer.addPass(sepiaPass);
+
+    // var effectGrayScale = new THREE.ShaderPass( THREE.LuminosityShader );
+    // composer.addPass( effectGrayScale );
+    
+    // var glitchPass = new THREE.GlitchPass(0);
+    // composer.addPass(glitchPass);
+
+     //custom shader pass
+    
+    
+    var customPass = new THREE.ShaderPass(toon);
+    // customPass.renderToScreen = true;
+    composer.addPass(customPass);
 
 
     // gui.add( params, 'roughness', 0, 1, 0.01 );
