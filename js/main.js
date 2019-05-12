@@ -106,7 +106,6 @@ function init() {
 
      //custom shader pass
     
-    
     addCustomShader(toon)
 
 
@@ -137,7 +136,9 @@ function addObject (filename) {
         `../obj/${filename}.obj`,
         // called when resource is loaded
         function ( object ) {
-            if (filename === 'house') house = object
+            if (filename === 'house') {
+                object = houseInit(object)
+            }
             
             object.material = material
             scene.add( object ); // .setMaterials() for material? see docs
@@ -182,6 +183,51 @@ function animate() {
 
 }
 
+function houseInit(object) {
+    object.scale.multiplyScalar(25)
+    object.position.y = -60
+    object.position.z = -150
+    object.rotation.y = Math.PI / 2;
+
+    var loader = new THREE.TextureLoader();
+
+    // load a resource
+    loader.load(
+        // resource URL
+        'textures/HOUSE_Material.PNG',
+
+        // onLoad callback
+        function ( texture ) {
+            // in this example we create the material when the texture is loaded
+            var material = new THREE.MeshBasicMaterial( {
+                map: texture
+            } );
+            console.log(material)
+            object.traverse( function ( child ) {
+
+                if ( child instanceof THREE.Mesh ) {
+        
+                    child.material = material;
+        
+                }
+        
+            } );
+        },
+
+        // onProgress callback currently not supported
+        undefined,
+
+        // onError callback
+        function ( err ) {
+            console.error( 'An error happened.' );
+        }
+    );
+
+    house = object
+
+    return object
+}
+
 function setCubeMap() {
     var urls = [ 'posx.jpg', 'negx.jpg', 'posy.jpg', 'negy.jpg', 'posz.jpg', 'negz.jpg' ];
     cubeMap = new THREE.CubeTextureLoader()
@@ -213,9 +259,6 @@ function render() {
 
     if (house) {
 
-        // house.material.roughness = params.roughness;
-        // house.material.metalness = params.metalness;
-
 
         var newEnvMap = renderTarget ? renderTarget.texture : null;
 
@@ -239,34 +282,4 @@ function render() {
     // renderer.render( scene, camera );
     composer.render();
 
-}
-
-
-///// for dynamic movement/ rotation
-
-var onPointerDownPointerX, onPointerDownPointerY, onPointerDownLon, onPointerDownLat;
-var lon = 0, lat = 0;
-var phi = 0, theta = 0;
-
-function onDocumentMouseDown( event ) {
-    event.preventDefault();
-    onPointerDownPointerX = event.clientX;
-    onPointerDownPointerY = event.clientY;
-    onPointerDownLon = lon;
-    onPointerDownLat = lat;
-    document.addEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.addEventListener( 'mouseup', onDocumentMouseUp, false );
-}
-function onDocumentMouseMove( event ) {
-    lon = ( event.clientX - onPointerDownPointerX ) * 0.1 + onPointerDownLon;
-    lat = ( event.clientY - onPointerDownPointerY ) * 0.1 + onPointerDownLat;
-}
-function onDocumentMouseUp() {
-    document.removeEventListener( 'mousemove', onDocumentMouseMove, false );
-    document.removeEventListener( 'mouseup', onDocumentMouseUp, false );
-}
-function onDocumentMouseWheel( event ) {
-    var fov = camera.fov + event.deltaY * 0.05;
-    camera.fov = THREE.Math.clamp( fov, 10, 75 );
-    camera.updateProjectionMatrix();
 }
