@@ -108,9 +108,7 @@ function init() {
      //custom shader pass
     
     
-    var customPass = new THREE.ShaderPass(toon);
-    // customPass.renderToScreen = true;
-    composer.addPass(customPass);
+    addCustomShader(toon)
 
 
     // gui.add( params, 'roughness', 0, 1, 0.01 );
@@ -118,6 +116,11 @@ function init() {
     gui.add( params, 'exposure', 0, 2, 0.01 );
     gui.open();
 
+}
+
+function addCustomShader(name) {
+    var customPass = new THREE.ShaderPass(toon);
+    composer.addPass(customPass);
 }
 
 function addObject (filename) {
