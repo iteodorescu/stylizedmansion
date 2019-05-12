@@ -516,7 +516,7 @@ Renderer.drawTriangle = function(verts, normals, uvs, material, viewMat) {
     case "Gouraud":
       this.drawTriangleGouraud(verts, projectedVerts, normals, uvs, material);
       break;
-    case "Phong":
+    case "Toon":
       this.drawTrianglePhong(verts, projectedVerts, normals, uvs, material);
       break;
     default:
