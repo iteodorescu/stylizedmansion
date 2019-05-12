@@ -9,7 +9,7 @@ THREE.SepiaShader = {
 
 		"tDiffuse": { value: null },
         "amount":   { value: 1.0 },
-        "mat4 Projection": {value: null},
+        "Projection": {value: null},
         "mat4 Modelview": {value: null},
         "mat3 NormalMatrix": {value: null},
         "vec3 DiffuseMaterial": {value: null}

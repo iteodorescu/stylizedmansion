@@ -3,7 +3,6 @@ if ( WEBGL.isWebGLAvailable() === false ) {
     document.body.appendChild( WEBGL.getWebGLErrorMessage() );
 
 }
-
 var params = {
     env: 'Citadella2',
     roughness: 0.0,
