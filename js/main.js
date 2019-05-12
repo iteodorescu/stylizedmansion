@@ -189,6 +189,41 @@ function houseInit(object) {
     object.position.y = -60
     object.position.z = -150
     object.rotation.y = Math.PI / 2;
+
+    var loader = new THREE.TextureLoader();
+
+    // load a resource
+    loader.load(
+        // resource URL
+        'textures/HOUSE_Material.PNG',
+
+        // onLoad callback
+        function ( texture ) {
+            // in this example we create the material when the texture is loaded
+            var material = new THREE.MeshBasicMaterial( {
+                map: texture
+            } );
+            console.log(material)
+            object.traverse( function ( child ) {
+
+                if ( child instanceof THREE.Mesh ) {
+        
+                    child.material = material;
+        
+                }
+        
+            } );
+        },
+
+        // onProgress callback currently not supported
+        undefined,
+
+        // onError callback
+        function ( err ) {
+            console.error( 'An error happened.' );
+        }
+    );
+
     house = object
 
     return object
