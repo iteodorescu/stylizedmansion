@@ -13,6 +13,9 @@ var Main = Main || {
 
 function Mesh() {
   this.vertices = []; // array of vertex positions
+  this.original_vertices = [];
+  this.translate = new THREE.Vector3();
+  this.yAngle = 0;
   this.faces = []; // array of lists of vertex indices
   this.vertex_normals = [];
   this.uvs = []; // array of uvs of faces
@@ -42,7 +45,18 @@ Mesh.prototype.computeVertexNormals = function() {
   }
 };
 
-Main.getMesh = function(filename) {
+// Mesh.prototype.translate = function(translate) {
+//     console.log("before")
+//     console.log(this.vertices)
+//     this.vertices.forEach((v) => {
+//         v = v.add(translate)
+//     })
+//     this.computeVertexNormals()
+//     console.log("translated")
+//     console.log(this.vertices)
+// }
+
+Main.getMesh = function(filename, translate, yAngle) {
   var newMesh = new Mesh();
 
   var filePath = "obj/" + filename; // all obj files are in the obj folder
@@ -54,6 +68,32 @@ Main.getMesh = function(filename) {
     var geometry = new THREE.Geometry().fromBufferGeometry(object.children[0].geometry);
     geometry.mergeVertices(); // otherwise we have duplicated vertices
     newMesh.vertices = geometry.vertices;
+    newMesh.original_vertices = []
+
+    newMesh.vertices.forEach((v) => newMesh.original_vertices.push(v.clone()))
+
+    if (translate !== undefined) {
+        newMesh.translate = translate
+        newMesh.vertices.forEach((v) => {
+            v = v.add(translate)
+        })
+    }
+
+    if (yAngle !== undefined && yAngle !== 0) {
+        newMesh.yAngle = yAngle
+        var radians = yAngle * Math.PI / 180
+        var angle = radians - newMesh.yAngle
+        newMesh.yAngle = radians
+        var cos = Math.cos(angle)
+        var sin = Math.sin(angle)
+        newMesh.vertices.forEach((v, index) => {
+            let x = newMesh.vertices[index].x
+            let z = newMesh.vertices[index].z
+            v.z = z*cos - x*sin
+            v.x = z*sin + x*cos
+        })
+    }
+    // console.log(newMesh)
     newMesh.faces = geometry.faces;
     newMesh.uvs = geometry.faceVertexUvs[0];
 
@@ -94,9 +134,10 @@ Main.getTexture = function(filename) {
   return imageObj;
 };
 
-function MeshInstance(filename, useMaterial) {
+function MeshInstance(filename, useMaterial, translate, yAngle) {
+    console.log("Mesh instance called")
   Main.itemsToLoad = 4;
-  this.mesh = filename !== undefined ? Main.getMesh(filename) : undefined;
+  this.mesh = filename !== undefined ? Main.getMesh(filename, translate, yAngle) : undefined;
 
   this.material = {};
   if (useMaterial) {

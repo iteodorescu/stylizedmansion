@@ -4,22 +4,19 @@ var GuiConfig = GuiConfig || {};
 
 GuiConfig.meshFileNames = [
   "cube.obj",
-  "tetrahedron.obj",
-  "teapot.obj",
   "cow.obj",
-  "cheetah.obj",
-  "hand.obj",
-  "sheep.obj",
-  "afrhead.obj",
-  "afreye.obj",
-  "boggiehead.obj",
-  "boggieeyes.obj",
-  "boggiebody.obj",
-  "diablo.obj",
+  "horse.obj",
+  "house.obj",
+  "houseF.obj",
+  "Cartoon Trees.obj",
+  "tree1.obj",
+  "tree2.obj",
+  "tree3.obj",
+  "LowPoly Cartoon Houses Pack02.obj"
 ];
 
-GuiConfig.resolutionOptions = ["320x240", "640x480", "800x600"];
-GuiConfig.shaderOptions = ["Wire", "Flat", "Gouraud", "Phong"];
+// GuiConfig.resolutionOptions = ["320x240", "640x480", "800x600"];
+GuiConfig.shaderOptions = ["Wire", "Flat", "Toon", "Pen and Ink"];
 GuiConfig.reflectionModelOptions = ["Diffuse", "Phong"];
 
 GuiConfig.controlDefs = [
@@ -28,13 +25,6 @@ GuiConfig.controlDefs = [
     type: "button",
     defaultVal: Gui.pushMesh,
     isButton: true,
-  },
-
-  {
-    name: "Resolution",
-    type: "dropdown",
-    defaultVal: GuiConfig.resolutionOptions[0],
-    dropdownOptions: GuiConfig.resolutionOptions,
   },
 
   {

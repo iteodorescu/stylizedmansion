@@ -36,8 +36,8 @@ Reflection.phongReflectionModel = function(vertex, view, normal, lightPos, phong
 
 var Renderer = Renderer || {
   meshInstances: new Set(),
-  width: 320,
-  height: 240,
+  width: window.innerWidth,
+  height: window.innerHeight,
   negNear: 0.3,
   negFar: 1000,
   fov: 45,
@@ -120,7 +120,7 @@ Renderer.render = function() {
   } else {
     // camera's stable, update url once
     if (!this.cameraUpdated) {
-      Gui.updateUrl();
+    //   Gui.updateUrl();
       this.cameraUpdated = true; //update one time
     }
   }
@@ -153,7 +153,7 @@ Renderer.render = function() {
       }
     }
   }
-  this.buffer.blur(3);
+//   this.buffer.blur(3);
   this.displayImage();
   
   // if(painterly){
