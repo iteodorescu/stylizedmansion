@@ -17,37 +17,59 @@ THREE.SepiaShader = {
 
 	vertexShader: [
 
-		"varying vec2 vUv;",
-
-		"void main() {",
-
-			"vUv = uv;",
-			"gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );",
-
-		"}"
+		"layout(location = 0) in vec3 in_position;",
+        "layout(location = 1) in vec3 in_normal;",
+        
+        "uniform mat4 model_matrix, view_matrix, projection_matrix;",
+        
+        //send them to fragment shader
+        "out vec3 world_pos;",
+        "out vec3 world_normal;",
+        
+        "void main() {",
+        
+        //convert in world coords
+        "world_pos = mat3(model_matrix) * in_position;//careful here",
+        "world_normal = normalize(mat3(model_matrix) * in_normal);",
+        "gl_Position = projection_matrix*view_matrix*model_matrix*vec4(in_position,1);",
+    "}"
 
 	].join( "\n" ),
 
 	fragmentShader: [
-
-		"uniform float amount;",
-
-		"uniform sampler2D tDiffuse;",
-
-		"varying vec2 vUv;",
-
-		"void main() {",
-
-			"vec4 color = texture2D( tDiffuse, vUv );",
-			"vec3 c = color.rgb;",
-
-			"color.r = dot( c, vec3( 1.0 - 0.607 * amount, 0.769 * amount, 0.189 * amount ) );",
-			"color.g = dot( c, vec3( 0.349 * amount, 1.0 - 0.314 * amount, 0.168 * amount ) );",
-			"color.b = dot( c, vec3( 0.272 * amount, 0.534 * amount, 1.0 - 0.869 * amount ) );",
-
-			"gl_FragColor = vec4( min( vec3( 1.0 ), color.rgb ), color.a );",
-
-		"}"
+        "layout(location = 0) out vec4 out_color;",
+ 
+        "uniform vec3 light_position;",
+        "uniform vec3 eye_position;",
+        
+        "uniform int material_shininess;",
+        "uniform float material_kd;",
+        "uniform float material_ks;",
+        
+        "in vec3 world_pos;",
+        "in vec3 world_normal;",
+        
+        "void main() {",
+        "vec3 L = normalize( light_position - world_pos);",
+        "vec3 V = normalize( eye_position - world_pos);",
+        "vec3 H = normalize(L + V );",
+        
+        "float diffuse = material_kd * max(0, dot(L,world_normal));",
+        "float specular = 0;",
+        
+        "if( dot(L,world_normal) > 0.0) {",
+            "specular = material_ks * pow( max(0, dot( H, world_normal)), material_shininess);",
+        "}",
+        
+        //Black color if dot product is smaller than 0.3
+        //else keep the same colors
+        "float edgeDetection = (dot(V, world_normal) > 0.3) ? 1 : 0;",
+        
+        "float light = edgeDetection * (diffuse + specular);",
+        "vec3 color = vec3(light,light,light);",
+        
+        "out_color = vec4(color,1);",
+        "}"
 
 	].join( "\n" )
 

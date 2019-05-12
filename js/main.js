@@ -106,7 +106,7 @@ function init() {
 
      //custom shader pass
     
-    addCustomShader(toon)
+    addCustomShader(toon);
 
 
     // gui.add( params, 'roughness', 0, 1, 0.01 );
@@ -117,7 +117,7 @@ function init() {
 }
 
 function addCustomShader(name) {
-    var customPass = new THREE.ShaderPass(toon);
+    var customPass = new THREE.ShaderPass(name);
     composer.addPass(customPass);
 }
 
