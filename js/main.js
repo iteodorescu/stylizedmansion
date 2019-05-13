@@ -54,6 +54,10 @@ function init() {
     planeMesh.rotation.x = - Math.PI * 0.5;
     scene.add( planeMesh );
 
+    var dlight = new THREE.DirectionalLight( 0xffffff, 0.05 );
+    dlight.position.set( 100, 100, 100 ).normalize();
+    scene.add( dlight );
+
     addObject('house')
 
 
@@ -176,7 +180,9 @@ function houseInit(object) {
         // onLoad callback
         function ( texture ) {
             // in this example we create the material when the texture is loaded
-            var material = new THREE.MeshBasicMaterial( {
+            texture.format = THREE.RGBFormat;
+            var material = new THREE.MeshPhongMaterial( {
+                color: 0xffffff,
                 map: texture
             } );
             object.traverse( function ( child ) {
