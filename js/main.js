@@ -3,12 +3,8 @@ if ( WEBGL.isWebGLAvailable() === false ) {
     document.body.appendChild( WEBGL.getWebGLErrorMessage() );
 
 }
-var params = {
-    env: 'Citadella2',
-    roughness: 0.0,
-    metalness: 0.0,
-    exposure: 1.0
-};
+
+
 
 var container, stats;
 var camera, scene, renderer, controls;
@@ -17,6 +13,8 @@ var torusMesh, planeMesh;
 var renderTarget, cubeMap;
 var composer;
 var effectSobel;
+
+var passes = {}
 
 init();
 animate();
@@ -56,6 +54,10 @@ function init() {
     planeMesh.rotation.x = - Math.PI * 0.5;
     scene.add( planeMesh );
 
+    var dlight = new THREE.DirectionalLight( 0xffffff, 0.05 );
+    dlight.position.set( 100, 100, 100 ).normalize();
+    scene.add( dlight );
+
     addObject('house')
 
 
@@ -80,45 +82,25 @@ function init() {
 
     window.addEventListener( 'resize', onWindowResize, false );
 
-    var gui = new dat.GUI();
-
-    
-    var handler = gui.add( params, 'env', ['Citadella2', 'Lycksele3'] ); // not working yet
-
-    handler.onChange(function() {
-        setCubeMap()
-    })
+    guiInit()
 
 
     composer = new THREE.EffectComposer(renderer);
 
     var renderPass = new THREE.RenderPass(scene, camera);
     composer.addPass(renderPass);
-
-    // var sepiaPass = new THREE.ShaderPass(THREE.SepiaShader);
-    // composer.addPass(sepiaPass);
-
-    // var effectGrayScale = new THREE.ShaderPass( THREE.LuminosityShader );
-    // composer.addPass( effectGrayScale );
     
-    // var glitchPass = new THREE.GlitchPass(0);
-    // composer.addPass(glitchPass);
+    // addCustomShader(toon)
 
-     //custom shader pass
+
     
-    addCustomShader(toon);
-
-
-    // gui.add( params, 'roughness', 0, 1, 0.01 );
-    // gui.add( params, 'metalness', 0, 1, 0.01 );
-    gui.add( params, 'exposure', 0, 2, 0.01 );
-    gui.open();
 
 }
 
 function addCustomShader(name) {
     var customPass = new THREE.ShaderPass(name);
     composer.addPass(customPass);
+    return customPass
 }
 
 function addObject (filename) {
@@ -129,7 +111,6 @@ function addObject (filename) {
         roughness: params.roughness
     } );
 
-    // loader.setMaterials([material])
     // load a resource
     loader.load(
         // resource URL
@@ -199,10 +180,11 @@ function houseInit(object) {
         // onLoad callback
         function ( texture ) {
             // in this example we create the material when the texture is loaded
-            var material = new THREE.MeshBasicMaterial( {
+            texture.format = THREE.RGBFormat;
+            var material = new THREE.MeshPhongMaterial( {
+                color: 0xffffff,
                 map: texture
             } );
-            console.log(material)
             object.traverse( function ( child ) {
 
                 if ( child instanceof THREE.Mesh ) {
@@ -251,11 +233,6 @@ function setCubeMap() {
 }
 
 function render() {
-    // lon += .15;
-
-    // lat = Math.max( - 85, Math.min( 85, lat ) );
-    // phi = THREE.Math.degToRad( 90 - lat );
-    // theta = THREE.Math.degToRad( lon );
 
     if (house) {
 
