@@ -1,261 +1,266 @@
-"use strict";
-
-var Gui = Gui || {
-  controlParamsStruct: {},
-  meshList: [],
-  meshID: 0, // we increment this id every time we push mesh
+var params = {
+    env: 'Lundagatan',
+    roughness: 0.0,
+    metalness: 0.0,
+    exposure: 1.0,
+    pointLights: true,
+    directionalLight: 0.05
 };
 
-Gui.init = function() {
-  this.meshListDatGui = new dat.GUI();
-  this.controlListDatGui = new dat.GUI();
+var threejsShaders = [
+    'BasicShader', 
+    'BleachBypassShader', 
+    'BlendShader', 
+    'BokehShader', 
+    'BokehShader2', 
+    'ColorifyShader', // done
+    'ConvolutionShader', 
+    'DepthLimitedBlurShader', 
+    'DigitalGlitch', 
+    'DotScreenShader', 
+    'FilmShader', ////// not working
+    'FreiChenShader', 
+    'FresnelShader', 
+    'HalftoneShader', 
+    'HueSaturationShader', 
+    'KaleidoShader', 
+    'LuminosityShader', 
+    'ParallaxShader', 
+    'PixelShader', // done
+    'SepiaShader', 
+    'SobelOperatorShader', 
+    'TechnicolorShader', // done
+    'ToneMapShader', 
+    'VerticalBlurShader', // done
+    'VerticalTiltShiftShader', 
+    'VignetteShader', // done
+]
 
-  for (var controlIdx = 0; controlIdx < GuiConfig.controlDefs.length; controlIdx++) {
-    var controlDef = GuiConfig.controlDefs[controlIdx];
-    this.controlParamsStruct[controlDef.name] = controlDef.defaultVal;
-    // }
-    this.controlListDatGui.open();
-  }
-//   this.parseUrl();
+var envOptions = ['Areskutan', 'Citadella2', 'Lundagatan', 'Lycksele3', 'Meadow', 'Tantolunden', 'Tantolunden3', 'Tantolunden4', 'Tenerife2']
 
-  for (var controlIdx = 0; controlIdx < GuiConfig.controlDefs.length; controlIdx++) {
-    var controlDef = GuiConfig.controlDefs[controlIdx];
-    var paramControl = undefined;
+function guiInit() {
+    var gui = new dat.GUI();
 
-    switch (controlDef.type) {
-      case "slider":
-        paramControl = this.controlListDatGui.add(
-          this.controlParamsStruct,
-          controlDef.name,
-          controlDef.sliderRange[0],
-          controlDef.sliderRange[1]
-        );
-        paramControl.step(
-          controlDef.step ||
-            (controlDef.isFloat && 1) ||
-            (controlDef.sliderRange[1] - controlDef.sliderRange[0]) / 20
-        );
-        break;
-      case "dropdown":
-        paramControl = this.controlListDatGui.add(
-          this.controlParamsStruct,
-          controlDef.name,
-          controlDef.dropdownOptions
-        );
-        break;
-      case "color":
-        paramControl = this.controlListDatGui.addColor(this.controlParamsStruct, controlDef.name);
-        break;
-      case "string":
-        paramControl = this.controlListDatGui.add(this.controlParamsStruct, controlDef.name);
-        break;
-      case "button":
-        paramControl = this.controlListDatGui.add(this.controlParamsStruct, controlDef.name);
-        break;
-      default:
-    }
-    paramControl.onChange(Gui.handleControlsChange);
-  }
+    var handler = gui.add( params, 'env', envOptions );
 
-  this.meshListDatGui.open();
+    handler.onChange(function() {
+        setCubeMap()
+    })
 
-  if (this.meshList.length == 0) {
-    this.pushMesh();
-  }
+    gui.add( params, 'exposure', 0, 2, 0.01 );
 
-  this.handleControlsChange();
+    var pLightsHandler = gui.add( params, 'pointLights' );
+    pLightsHandler.onChange(updateVisPointLights)
 
-  this.fullyInitialized = true;
-};
+    var dlightHandler = gui.add( params,'directionalLight', 0, 0.7, 0.01 )
+    dlightHandler.onChange(updateDirLight)
 
-Gui.pushMesh = function(newMesh) {
-  if (newMesh == undefined) {
-    var newMesh = {
-      name: "Mesh " + (Gui.meshID++).toString(),
-      meshName: GuiConfig.meshFileNames[0],
-      useMaterial: false,
-      tx: 0,
-      tz: 0,
-      ry: 0
-    };
-  }
+    var fThreejs = gui.addFolder("ThreeJS Shaders")
+    var fCustom = gui.addFolder("Custom Shaders")
 
-  newMesh.meshInstance = new MeshInstance(newMesh.meshName, newMesh.useMaterial, new THREE.Vector3(newMesh.tx, 0, newMesh.tz));
+    setUpCustomShaders(fCustom)
+    setUpThreejsShaders(fThreejs)
 
-  newMesh.delete = function() {
-    Renderer.removeMeshInstance(this.meshInstance);
-    for (var meshIdx = 0; meshIdx < Gui.meshList.length; meshIdx++) {
-      if (Gui.meshList[meshIdx].name == this.name) {
-        Gui.meshList.splice(meshIdx, 1);
-      }
-    }
-    Gui.meshListDatGui.removeFolder(this.name);
-    // Gui.updateUrl();
-  };
+    gui.open();
+}
 
-  newMesh.updateMesh = function() {
-    Renderer.removeMeshInstance(this.meshInstance);
-    this.meshInstance = new MeshInstance(this.meshName, newMesh.useMaterial, this.meshInstance.mesh.translate, this.meshInstance.mesh.yAngle);
-    Renderer.addMeshInstance(this.meshInstance);
-    // Gui.updateUrl();
-  };
+// CUSTOM SHADERS
 
-  var meshFolder = Gui.meshListDatGui.addFolder(newMesh.name);
-  Gui.meshList.push(newMesh);
-  var handler = undefined;
-  handler = meshFolder.add(newMesh, "meshName", GuiConfig.meshFileNames).name("Mesh File");
-  handler.onChange(
-    (function(newMesh) {
-      return function() {
-        newMesh.updateMesh();
-      };
-    })(newMesh)
-  );
+var customShaders = ['oilPainting', 'penAndInk', 'sketch', 'toon']
 
-  handler = meshFolder.add(newMesh, "useMaterial").name("Use Material");
-  handler.onChange(
-    (function(newMesh) {
-      return function() {
-        newMesh.updateMesh();
-      };
-    })(newMesh)
-  );
+function setUpCustomShaders(fCustom) {
+    customShaders.forEach((shader) => {
+        params[shader] = false
 
-  handler = meshFolder.add(newMesh, "tx", -10, 10).name("Translate X");
-  handler.onChange(
-    (function(newMesh) {
-      return function() {
-        // newMesh.updateMesh();
-        newMesh.meshInstance.mesh.translate.x = newMesh.tx
-        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
-            v.x = newMesh.tx + newMesh.meshInstance.mesh.original_vertices[index].x
+        var handler = fCustom.add(params, shader)
+        handler.onChange((val) => {
+            console.log(params[shader])
+            if (params[shader]) {
+                if (passes[shader]) passes[shader].enabled = true
+                else {
+                    var pass = addCustomShader(window[shader])
+                    passes[shader] = pass
+                }
+            }
+            else {
+                passes[shader].enabled = false
+            }
         })
-        newMesh.meshInstance.mesh.computeVertexNormals();
-      };
-    })(newMesh)
-  );
+    })
+}
 
-  handler = meshFolder.add(newMesh, "tz", -7, 7).name("Translate Z");
-  handler.onChange(
-    (function(newMesh) {
-      return function() {
-        // newMesh.updateMesh();
-        newMesh.meshInstance.mesh.translate.z = newMesh.tz
-        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
-            v.z = newMesh.tz + newMesh.meshInstance.mesh.original_vertices[index].z
-        })
-        newMesh.meshInstance.mesh.computeVertexNormals();
-      };
-    })(newMesh)
-  );
+// THREEJS SHADERS
+function setUpThreejsShaders(fThreejs) {
+    blur(fThreejs)
+    colorify(fThreejs)
+    pixel(fThreejs)
+    dotScreen(fThreejs)
+    technicolor(fThreejs)
+    vignette(fThreejs)
+    // film(fThreejs)
+}
 
-  handler = meshFolder.add(newMesh, "ry", -180, 180).name("Rotation around y axis");
-  handler.onChange(
-    (function(newMesh) {
-      return function() {
-        // newMesh.updateMesh();
-        var radians = newMesh.ry * Math.PI / 180
-        var angle = radians - newMesh.meshInstance.mesh.yAngle
-        newMesh.meshInstance.mesh.yAngle = radians
-        var cos = Math.cos(angle)
-        var sin = Math.sin(angle)
-        newMesh.meshInstance.mesh.vertices.forEach((v, index) => {
-            let x = newMesh.meshInstance.mesh.vertices[index].x
-            let z = newMesh.meshInstance.mesh.vertices[index].z
-            v.z = z*cos - x*sin
-            v.x = z*sin + x*cos
-        })
-        newMesh.meshInstance.mesh.computeVertexNormals();
-      };
-    })(newMesh)
-  );
+function blur(f) {
+    var shader = 'blur'
+    params[shader] = false
 
-  Renderer.addMeshInstance(newMesh.meshInstance);
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) passes[shader].enabled = true
+            else {
+                var pass = addCustomShader(THREE.VerticalBlurShader)
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+}
 
-  meshFolder.add(newMesh, "delete").name("Delete");
-  meshFolder.open();
-//   Gui.updateUrl();
-};
+function pixel(f) {
+    var shader = 'pixel'
+    params[shader] = 0
 
-Gui.handleControlsChange = function() {
-  if (Gui.suspendDisplayUpdate) return;
-
-  for (var controlIdx = 0; controlIdx < GuiConfig.controlDefs.length; controlIdx++) {
-    var controlDef = GuiConfig.controlDefs[controlIdx];
-    var val = Gui.controlParamsStruct[controlDef.name];
-    var converted_val = undefined;
-
-    if (controlDef.type == "color") {
-      converted_val = [];
-      if (typeof val === "string") {
-        var bigint = parseInt(val.substring(1), 16);
-        converted_val[0] = (bigint >> 16) & 255;
-        converted_val[1] = (bigint >> 8) & 255;
-        converted_val[2] = bigint & 255;
-      } else {
-        converted_val = val;
-      }
-      converted_val = new Pixel(
-        converted_val[0] / 255,
-        converted_val[1] / 255,
-        converted_val[2] / 255
-      );
-    } else {
-      converted_val = val;
-    }
-
-    switch (controlDef.name) {
-      case "Shading Model":
-        Renderer.shaderMode = converted_val;
-        break;
-      case "Ambient":
-        Reflection.ambient = converted_val;
-        break;
-      case "Diffuse":
-        Reflection.diffuse = converted_val;
-        break;
-      case "Specular":
-        Reflection.specular = converted_val;
-        break;
-      case "Shininess":
-        Reflection.shininess = converted_val;
-        break;
-      default:
-    }
-  }
-//   Gui.updateUrl();
-};
-
-Gui.getFilterHistoryData = function() {
-  return this.historyFilters;
-};
-
-// gets rid of the ".0000000001" etc when stringifying floats
-// from http://stackoverflow.com/questions/1458633/how-to-deal-with-floating-point-number-precision-in-javascript
-function stripFloatError(number) {
-  if (number && number.toPrecision) {
-    return parseFloat(number.toPrecision(5));
-  } else {
-    return number;
-  }
+    var handler = f.add(params, shader, 0, 100)
+    handler.onChange((val) => {
+        if (params[shader] > 0) {
+            if (passes[shader]) {
+                passes[shader].enabled = true
+                passes[shader].uniforms[ "pixelSize" ].value = val
+            }
+            else {
+                var pass = addCustomShader(THREE.PixelShader)
+                pass.uniforms[ "resolution" ].value = new THREE.Vector2( window.innerWidth, window.innerHeight );
+				pass.uniforms[ "resolution" ].value.multiplyScalar( window.devicePixelRatio );
+                pass.uniforms[ "pixelSize" ].value = val
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
 }
 
 
-Gui.alertOnce = function(msg, divName) {
-  divName = divName || "alert_div";
-  // NOTE: mainDiv opacity change disabled to allow >1 different alerts
-  // var mainDiv = document.getElementById('main_div');
-  // mainDiv.style.opacity = "0.3";
-  var alertDiv = document.getElementById(divName);
-  alertDiv.innerHTML = "<p>" + msg + '</p><button id="ok" onclick="Gui.closeAlert()">ok</button>';
-  alertDiv.style.display = "inline";
-};
+function colorify(f) {
+    var shader = 'colorify'
+    params[shader] = false
+    params['color'] = new THREE.Color( 0xffffff )
 
-Gui.closeAlert = function(divName) {
-  divName = divName || "alert_div";
-  // NOTE: mainDiv opacity change disabled to allow >1 different alerts
-  // var mainDiv = document.getElementById('main_div');
-  // mainDiv.style.opacity = "1";
-  var alertDiv = document.getElementById(divName);
-  alertDiv.style.display = "none";
-};
+    var colorHandler = f.addColor(params, 'color')
+    colorHandler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) {
+                passes[shader].enabled = true
+                passes[shader].uniforms['color'].value = params.color
+            }
+            else {
+                var pass = addCustomShader(THREE.ColorifyShader)
+                pass.uniforms['color'].value = params.color
+                passes[shader] = pass
+            }
+        }
+    })
+
+
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) {
+                passes[shader].enabled = true
+                passes[shader].uniforms['color'].value = params.color
+            }
+            else {
+                var pass = addCustomShader(THREE.ColorifyShader)
+                pass.uniforms['color'].value = params.color
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+}
+
+function dotScreen(f) {
+    var shader = 'dotScreen'
+    params[shader] = false
+
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) passes[shader].enabled = true
+            else {
+                var pass = addCustomShader(THREE.DotScreenShader)
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+}
+
+function technicolor(f) {
+    var shader = 'technicolor'
+    params[shader] = false
+
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) passes[shader].enabled = true
+            else {
+                var pass = addCustomShader(THREE.TechnicolorShader)
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+}
+
+/* function film(f) {
+    var shader = 'film'
+    params[shader] = false
+
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) passes[shader].enabled = true
+            else {
+                var pass = new THREE.FilmPass( 0.35, 0.025, 648, false );
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+} */
+
+function vignette(f) {
+    var shader = 'vignette'
+    params[shader] = false
+
+    var handler = f.add(params, shader)
+    handler.onChange((val) => {
+        if (params[shader]) {
+            if (passes[shader]) passes[shader].enabled = true
+            else {
+                var pass = addCustomShader(THREE.VignetteShader)
+                passes[shader] = pass
+            }
+        }
+        else {
+            passes[shader].enabled = false
+        }
+    })
+}
+
+
+
+

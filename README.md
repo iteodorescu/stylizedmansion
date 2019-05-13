@@ -4,7 +4,7 @@ To run:
 
 
 ### TODO - rough order of priority
-* make house & trees bigger (in blender I assume)
-* add material to objects
-* add implemented shading things
+* ~add directional lights~
+* ~add implemented shading things~
 * add trees
+* remove unnecessary files
