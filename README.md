@@ -4,6 +4,7 @@ To run:
 
 
 ### TODO - rough order of priority
-* add directional lights
-* add implemented shading things
+* ~add directional lights~
+* ~add implemented shading things~
 * add trees
+* remove unnecessary files
