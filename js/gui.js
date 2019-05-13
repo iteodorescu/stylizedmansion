@@ -2,7 +2,9 @@ var params = {
     env: 'Lundagatan',
     roughness: 0.0,
     metalness: 0.0,
-    exposure: 1.0
+    exposure: 1.0,
+    pointLights: true,
+    directionalLight: 0.05
 };
 
 var threejsShaders = [
@@ -34,7 +36,7 @@ var threejsShaders = [
     'VignetteShader', // done
 ]
 
-var envOptions = ['Areskutan', 'Citadella2', 'Lundagatan', 'Lycksele3', 'Meadow', 'MountainPath', 'Tantolunden', 'Tantolunden3', 'Tantolunden4', 'Tenerife2']
+var envOptions = ['Areskutan', 'Citadella2', 'Lundagatan', 'Lycksele3', 'Meadow', 'Tantolunden', 'Tantolunden3', 'Tantolunden4', 'Tenerife2']
 
 function guiInit() {
     var gui = new dat.GUI();
@@ -46,6 +48,12 @@ function guiInit() {
     })
 
     gui.add( params, 'exposure', 0, 2, 0.01 );
+
+    var pLightsHandler = gui.add( params, 'pointLights' );
+    pLightsHandler.onChange(updateVisPointLights)
+
+    var dlightHandler = gui.add( params,'directionalLight', 0, 0.7, 0.01 )
+    dlightHandler.onChange(updateDirLight)
 
     var fThreejs = gui.addFolder("ThreeJS Shaders")
     var fCustom = gui.addFolder("Custom Shaders")

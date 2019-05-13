@@ -9,10 +9,11 @@ if ( WEBGL.isWebGLAvailable() === false ) {
 var container, stats;
 var camera, scene, renderer, controls;
 var house;
-var torusMesh, planeMesh;
+var planeMesh;
 var renderTarget, cubeMap;
 var composer;
-var effectSobel;
+var plights = [];
+var dlight;
 
 var passes = {}
 
@@ -25,7 +26,7 @@ function init() {
     document.body.appendChild( container );
 
     camera = new THREE.PerspectiveCamera( 40, window.innerWidth / window.innerHeight, 1, 1000 );
-    camera.position.set( 0, 0, 120 );
+    camera.position.set( 0, 0, 200 );
 
     scene = new THREE.Scene();
     scene.background = new THREE.Color( 0x000000 );
@@ -42,9 +43,6 @@ function init() {
         roughness: params.roughness
     } );
 
-    torusMesh = new THREE.Mesh( geometry, material );
-    // scene.add( torusMesh );
-
 
     var geometry = new THREE.PlaneBufferGeometry( 200, 200 );
     var material = new THREE.MeshBasicMaterial();
@@ -54,12 +52,10 @@ function init() {
     planeMesh.rotation.x = - Math.PI * 0.5;
     scene.add( planeMesh );
 
-    var dlight = new THREE.DirectionalLight( 0xffffff, 0.05 );
-    dlight.position.set( 100, 100, 100 ).normalize();
-    scene.add( dlight );
+    addPointLights()
+    addDirLight()
 
     addObject('house')
-
 
     setCubeMap()
 
@@ -103,6 +99,53 @@ function addCustomShader(name) {
     return customPass
 }
 
+function addPointLights () {
+    var intensity = 10;
+    var distance = 150;
+    var decay = 2.0;
+    var c = 0xffffff
+    // var c1 = 0xff0040, c2 = 0x0040ff, c3 = 0x80ff80, c4 = 0xffaa00, c5 = 0x00ffaa, c6 = 0xff1100;
+    var sphere = new THREE.SphereBufferGeometry( 0.25, 16, 8 );
+
+    for (let i = 0; i < 6; i++) {
+        var light = new THREE.PointLight( c, intensity, distance, decay );
+        light.add( new THREE.Mesh( sphere, new THREE.MeshBasicMaterial( { color: c } ) ) );
+        scene.add( light );
+        plights.push(light)
+    }
+}
+
+function addDirLight() {
+    dlight = new THREE.DirectionalLight( 0xffffff, 0.05 );
+    dlight.position.set( 0.5, 1, 100 ).normalize();
+    scene.add( dlight );
+}
+
+function updateDirLight() {
+    dlight.intensity = params.directionalLight
+}
+
+function updatePointLights() {
+    var time = Date.now() * 0.00025;
+    var d = 200;
+    plights[0].position.x = Math.sin( time * 0.7 ) * d;
+    plights[0].position.z = Math.cos( time * 0.3 ) * d;
+    plights[1].position.x = Math.cos( time * 0.3 ) * d;
+    plights[1].position.z = Math.sin( time * 0.7 ) * d;
+    plights[2].position.x = Math.sin( time * 0.7 ) * d;
+    plights[2].position.z = Math.sin( time * 0.5 ) * d;
+    plights[3].position.x = Math.sin( time * 0.3 ) * d;
+    plights[3].position.z = Math.sin( time * 0.5 ) * d;
+    plights[4].position.x = Math.cos( time * 0.3 ) * d;
+    plights[4].position.z = Math.sin( time * 0.5 ) * d;
+    plights[5].position.x = Math.cos( time * 0.7 ) * d;
+    plights[5].position.z = Math.cos( time * 0.5 ) * d;
+}
+
+function updateVisPointLights() {
+    plights.forEach((light) => light.visible = params.pointLights)
+}
+
 function addObject (filename) {
     var loader = new THREE.OBJLoader();
     var material = new THREE.MeshStandardMaterial( {
@@ -141,7 +184,7 @@ function addObject (filename) {
 }
 
 
-function onWindowResize() {
+function onWindowResize() { /// not fully implemented
 
     var width = window.innerWidth;
     var height = window.innerHeight;
@@ -166,7 +209,7 @@ function animate() {
 
 function houseInit(object) {
     object.scale.multiplyScalar(25)
-    object.position.y = -60
+    object.position.y = -75
     object.position.z = -150
     object.rotation.y = Math.PI / 2;
 
@@ -257,6 +300,7 @@ function render() {
     renderer.toneMappingExposure = params.exposure;
 
     // renderer.render( scene, camera );
+    updatePointLights()
     composer.render();
 
 }
