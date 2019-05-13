@@ -108,10 +108,15 @@ function init() {
      //custom shader pass
     
     
-    var customPass = new THREE.ShaderPass(toon);
-    // customPass.renderToScreen = true;
-    composer.addPass(customPass);
+    // var customPass = new THREE.ShaderPass(toon);
+    // // customPass.renderToScreen = true;
+    // composer.addPass(customPass);
 
+
+    var customPass2 = new THREE.ShaderPass(oilPainting);
+    composer.addPass(customPass2);
+
+    customPass2.renderToScreen = true;
 
     // gui.add( params, 'roughness', 0, 1, 0.01 );
     // gui.add( params, 'metalness', 0, 1, 0.01 );
