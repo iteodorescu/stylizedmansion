@@ -195,6 +195,7 @@ function dotScreen(f) {
             if (passes[shader]) passes[shader].enabled = true
             else {
                 var pass = addCustomShader(THREE.DotScreenShader)
+                pass.uniforms['scale'].value = 4
                 passes[shader] = pass
             }
         }
