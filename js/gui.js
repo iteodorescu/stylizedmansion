@@ -66,7 +66,7 @@ function guiInit() {
 
 // CUSTOM SHADERS
 
-var customShaders = ['oilPainting', 'penAndInk', 'toon', 'toon2']
+var customShaders = ['oilPainting', 'toon']
 
 function setUpCustomShaders(fCustom) {
     customShaders.forEach((shader) => {
@@ -89,30 +89,6 @@ function setUpCustomShaders(fCustom) {
     })
 
     // params['sketch'] = false
-
-    /*var handler = fCustom.add(params, 'sketch')
-    handler.onChange((val) => {
-        if (params['sketch']) {
-            if (passes['sketch'] && passes['sketch2'] && passes['sketch3']) {
-                passes['sketch'].enabled = true
-                passes['sketch2'].enabled = true
-                passes['sketch3'].enabled = true
-            }
-            else {
-                var pass = addCustomShader(window['sketch'])
-                var pass2 = addCustomShader(window['sketch2'])
-                var pass3 = addCustomShader(window['sketch3'])
-                passes['sketch'] = pass
-                passes['sketch2'] = pass2
-                passes['sketch3'] = pass3
-            }
-        }
-        else {
-            passes['sketch'].enabled = false
-            passes['sketch2'].enabled = false
-            passes['sketch3'].enabled = false
-        }
-    })*/
 
     // var handler = fCustom.add(params, 'sketch')
     // handler.onChange((val) => {
@@ -140,7 +116,6 @@ function setUpThreejsShaders(fThreejs) {
     dotScreen(fThreejs)
     technicolor(fThreejs)
     vignette(fThreejs)
-    // film(fThreejs)
 }
 
 function blur(f) {
@@ -267,25 +242,6 @@ function technicolor(f) {
         }
     })
 }
-
-/* function film(f) {
-    var shader = 'film'
-    params[shader] = false
-
-    var handler = f.add(params, shader)
-    handler.onChange((val) => {
-        if (params[shader]) {
-            if (passes[shader]) passes[shader].enabled = true
-            else {
-                var pass = new THREE.FilmPass( 0.35, 0.025, 648, false );
-                passes[shader] = pass
-            }
-        }
-        else {
-            passes[shader].enabled = false
-        }
-    })
-} */
 
 function vignette(f) {
     var shader = 'vignette'
