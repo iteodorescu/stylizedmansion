@@ -2,10 +2,11 @@ var sketch3 = {
     uniforms: {
         "tDiffuse": {value: null},
         "tColor": {value: null},
-        "tNoise": { type: 't', value: new THREE.TextureLoader().load( 'assets/noise.png' ) },
-        "tPaper": { type: 't', value: new THREE.TextureLoader().load( 'assets/brown.jpg' ) },
+        "tNoise": { type: 't', value: new THREE.TextureLoader().load( './assets/noise.png' ) },
+        "tPaper": { type: 't', value: new THREE.TextureLoader().load( './assets/brown.jpg' ) },
         "tBlur": {value: null},
         "resolution":  { type: 'v2', value: new THREE.Vector2( 1, 1 ) },
+        "delta": {type: 'v2', value: new THREE.Vector2(.1,0)}
 
     },
     vertexShader: [

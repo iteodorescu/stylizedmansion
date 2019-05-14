@@ -1,7 +1,7 @@
 var sketch = {
     uniforms: {
-        "tDiffuse": {value: null},
-        "delta": {value: vec2(0.0,0.1)}
+        "tDiffuse": { type: 't', value: null },
+        "delta": { type: 'v2', value: new THREE.Vector2( .01, .01) }
     },
     vertexShader: [
         "varying vec2 vUv;",

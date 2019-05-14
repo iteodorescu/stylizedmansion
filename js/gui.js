@@ -66,7 +66,7 @@ function guiInit() {
 
 // CUSTOM SHADERS
 
-var customShaders = ['oilPainting', 'penAndInk', 'sketch', 'toon']
+var customShaders = ['oilPainting', 'penAndInk', 'toon', 'toon2']
 
 function setUpCustomShaders(fCustom) {
     customShaders.forEach((shader) => {
@@ -87,6 +87,49 @@ function setUpCustomShaders(fCustom) {
             }
         })
     })
+
+    // params['sketch'] = false
+
+    /*var handler = fCustom.add(params, 'sketch')
+    handler.onChange((val) => {
+        if (params['sketch']) {
+            if (passes['sketch'] && passes['sketch2'] && passes['sketch3']) {
+                passes['sketch'].enabled = true
+                passes['sketch2'].enabled = true
+                passes['sketch3'].enabled = true
+            }
+            else {
+                var pass = addCustomShader(window['sketch'])
+                var pass2 = addCustomShader(window['sketch2'])
+                var pass3 = addCustomShader(window['sketch3'])
+                passes['sketch'] = pass
+                passes['sketch2'] = pass2
+                passes['sketch3'] = pass3
+            }
+        }
+        else {
+            passes['sketch'].enabled = false
+            passes['sketch2'].enabled = false
+            passes['sketch3'].enabled = false
+        }
+    })*/
+
+    // var handler = fCustom.add(params, 'sketch')
+    // handler.onChange((val) => {
+    //     if (params['sketch']) {
+    //         if (passes['sketch']) {
+    //             passes['sketch'].enabled = true
+    //         }
+    //         else {
+    //             var pass = addCustomShader(window['sketch'])
+    //             passes['sketch'] = pass
+    //         }
+    //     }
+    //     else {
+    //         passes['sketch'].enabled = false
+
+    //     }
+    // })
 }
 
 // THREEJS SHADERS

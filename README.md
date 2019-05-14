@@ -7,4 +7,4 @@ To run:
 * ~add directional lights~
 * ~add implemented shading things~
 * add trees
-* remove unnecessary files
+* remove unnecessary files in obj

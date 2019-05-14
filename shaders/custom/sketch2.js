@@ -1,6 +1,8 @@
 var sketch2 = {
     uniforms: {
-        "renderDepth": {value: 0},
+        "tDiffuse": {value: null},
+        "renderDepth": { type: 'i', value: 0 },
+        "delta": {type: 'v2',value: new THREE.Vector2(0,.1)}
     },
     vertexShader: [
         "varying vec3 vNormal;                          ",
@@ -49,5 +51,7 @@ var sketch2 = {
             "    gl_FragColor = vec4( .5 * ( 1. + n.x ), .5 * ( 1. + n.y ), z, 1. );",
             "}",
         "}"
-    ].join( "\n" )
+    ].join( "\n" ),
+    shading: THREE.SmoothShading,
+	transparent: true
 }
