@@ -157,7 +157,7 @@ function addObject (filename) {
     // load a resource
     loader.load(
         // resource URL
-        `../obj/${filename}.obj`,
+        `obj/${filename}.obj`,
         // called when resource is loaded
         function ( object ) {
             if (filename === 'house') {
